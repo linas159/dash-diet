@@ -1,0 +1,22 @@
+// Add these scripts to your package.json for easier testing
+
+{
+  "scripts": {
+    // ... your existing scripts ...
+
+    // Testing commands
+    "test:webhook": "stripe listen --forward-to localhost:3000/api/webhook",
+    "test:trigger": "stripe trigger checkout.session.completed",
+    "test:full": "concurrently \"npm run dev\" \"npm run test:webhook\"",
+    "db:migrate": "echo 'Run the SQL in supabase/migrations/add_personalized_plan.sql in your Supabase dashboard'"
+  }
+}
+
+// Installation for testing:
+// npm install -D concurrently
+// npm install -g stripe
+
+// Usage:
+// 1. npm run test:webhook    (starts webhook listener)
+// 2. npm run test:trigger    (triggers test payment)
+// 3. npm run test:full       (runs dev server + webhook listener together)

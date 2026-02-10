@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased text-gray-900 bg-white font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Hide scrollbar for webkit */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge, and Firefox */
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply w-full py-4 px-6 bg-dash-blue text-white font-semibold rounded-2xl
+           text-lg transition-all duration-200 active:scale-[0.98]
+           hover:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply w-full py-4 px-6 bg-white text-dash-blue font-semibold rounded-2xl
+           text-lg border-2 border-gray-200 transition-all duration-200
+           active:scale-[0.98] hover:border-dash-blue;
+  }
+
+  .btn-accent {
+    @apply w-full py-4 px-6 bg-gradient-to-r from-dash-teal to-dash-green
+           text-white font-bold rounded-2xl text-lg transition-all duration-200
+           active:scale-[0.98] shadow-lg shadow-teal-200;
+  }
+
+  .option-card {
+    @apply w-full p-4 rounded-2xl border-2 border-gray-200 bg-white
+           text-left transition-all duration-200 active:scale-[0.98]
+           hover:border-dash-blue hover:bg-primary-50;
+  }
+
+  .option-card-selected {
+    @apply border-dash-blue bg-primary-50 ring-2 ring-primary-200;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-dash-blue to-dash-teal bg-clip-text text-transparent;
+  }
+
+  .progress-bar {
+    @apply h-1.5 rounded-full bg-gradient-to-r from-dash-blue via-dash-teal to-dash-green
+           transition-all duration-500 ease-out;
+  }
+
+  .number-input {
+    @apply w-full text-center text-4xl font-bold text-dash-blue bg-gray-50
+           rounded-2xl py-6 border-2 border-gray-200 focus:border-dash-blue
+           focus:outline-none focus:ring-4 focus:ring-primary-100 transition-all;
+  }
+
+  .fade-mask-bottom {
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}

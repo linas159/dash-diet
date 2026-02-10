@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(where:*)",
+      "Bash(where npm:*)",
+      "Bash(cmd /c \"where node & where npm & where npx\")",
+      "Bash(cmd /c \"node --version\")",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -NoProfile -Command:*)",
+      "Bash(dir \"C:\\\\Program Files\\\\nodejs\")",
+      "Bash(npm config:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(dir:*)",
+      "Bash(\"C:\\\\Program Files\\\\nodejs\\\\npm\" --version)",
+      "Bash(cmd /c \"taskkill /PID 22680 /F\")",
+      "Bash(cmd /c \"rmdir /s /q D:\\\\dash-diet\\\\.next\")",
+      "Bash(cmd /c \"tasklist /FI \"\"IMAGENAME eq node.exe\"\" /FO TABLE\")",
+      "Bash(cmd /c \"tasklist /FI \"\"IMAGENAME eq node.exe\"\"\")",
+      "Bash(TASKLIST)",
+      "Bash(curl:*)",
+      "Bash(cmd /c \"taskkill /IM node.exe /F\")",
+      "Bash(cmd /c \"netstat -ano | findstr :3000\")",
+      "Bash(npx next dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(test:*)",
+      "Bash(stripe --version:*)",
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(npx next lint:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(if exist nul del /F nul)"
+    ]
+  }
+}
