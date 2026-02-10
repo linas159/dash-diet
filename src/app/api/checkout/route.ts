@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
 // Each plan maps to its RECURRING price (the regular price charged after intro period)
 const priceMap: Record<string, string> = {
-  "7day": process.env.STRIPE_PRICE_7DAY!,       // $37.98/month recurring
-  monthly: process.env.STRIPE_PRICE_MONTHLY!,    // $37.98/month recurring
-  quarterly: process.env.STRIPE_PRICE_QUARTERLY!, // $75.98/3 months recurring
+  "7day": process.env.STRIPE_PRICE_7DAY!.trim(),       // $37.98/month recurring
+  monthly: process.env.STRIPE_PRICE_MONTHLY!.trim(),    // $37.98/month recurring
+  quarterly: process.env.STRIPE_PRICE_QUARTERLY!.trim(), // $75.98/3 months recurring
 };
 
 // Intro pricing: trial days + upfront charge in cents + label for the one-time product
@@ -32,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").trim();
     const intro = introConfig[priceId];
 
     // Build the checkout session options

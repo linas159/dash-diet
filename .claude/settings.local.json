@@ -31,7 +31,13 @@
       "Bash(npx next lint:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(if exist nul del /F nul)"
+      "Bash(if exist nul del /F nul)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: DASH Diet SaaS web app\n\n- Next.js 15.1 + React 19 + TypeScript\n- Interactive quiz with 20+ questions\n- AI-powered meal plan generation \\(Gemini 2.0 Flash\\)\n- Stripe subscription integration\n- Supabase database with RLS\n- Mobile-first responsive design\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(vercel login:*)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel:*)",
+      "Bash(bash:*)",
+      "Bash(find:*)"
     ]
   }
 }

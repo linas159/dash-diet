@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -19,7 +17,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET!.trim()
     );
   } catch (err) {
     console.error("Webhook signature verification failed:", err);

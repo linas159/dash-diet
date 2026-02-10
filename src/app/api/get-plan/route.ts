@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
 export async function GET(request: NextRequest) {
   try {

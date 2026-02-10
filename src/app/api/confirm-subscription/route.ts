@@ -2,15 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
 // Each plan maps to its RECURRING price (the regular price charged after intro period)
 const priceMap: Record<string, string> = {
-  "7day": process.env.STRIPE_PRICE_7DAY!,
-  monthly: process.env.STRIPE_PRICE_MONTHLY!,
-  quarterly: process.env.STRIPE_PRICE_QUARTERLY!,
+  "7day": process.env.STRIPE_PRICE_7DAY!.trim(),
+  monthly: process.env.STRIPE_PRICE_MONTHLY!.trim(),
+  quarterly: process.env.STRIPE_PRICE_QUARTERLY!.trim(),
 };
 
 // Intro pricing: trial days + the one-time intro price ID from Stripe
@@ -20,15 +18,15 @@ const introConfig: Record<
 > = {
   "7day": {
     trialDays: 7,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_7DAY!,
+    introPriceId: process.env.STRIPE_INTRO_PRICE_7DAY!.trim(),
   },
   monthly: {
     trialDays: 30,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_MONTHLY!,
+    introPriceId: process.env.STRIPE_INTRO_PRICE_MONTHLY!.trim(),
   },
   quarterly: {
     trialDays: 90,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_QUARTERLY!,
+    introPriceId: process.env.STRIPE_INTRO_PRICE_QUARTERLY!.trim(),
   },
 };
 
@@ -109,7 +107,7 @@ export async function POST(request: NextRequest) {
         console.error("Supabase insert failed:", dbError.message, dbError.details, dbError.hint);
       } else if (answers && Object.keys(answers).length > 0) {
         // Trigger personalized plan generation in the background
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").trim();
         try {
           const planResponse = await fetch(`${baseUrl}/api/generate-personalized-plan`, {
             method: "POST",
