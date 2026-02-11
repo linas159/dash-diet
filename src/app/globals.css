@@ -51,6 +51,8 @@
     @apply w-full p-4 rounded-2xl border-2 border-gray-200 bg-white
            text-left transition-all duration-200 active:scale-[0.98]
            hover:border-dash-blue hover:bg-primary-50;
+    transform: translateZ(0);
+    will-change: transform, opacity;
   }
 
   .option-card-selected {

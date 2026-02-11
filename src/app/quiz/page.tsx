@@ -139,16 +139,6 @@ export default function QuizPage() {
               >
                 Generate My Plan
               </button>
-
-              <button
-                onClick={() => {
-                  setEmailInput("");
-                  handleSubmit();
-                }}
-                className="w-full py-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                Skip for now
-              </button>
             </div>
 
             <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed">

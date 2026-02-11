@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import AccessPlanSection from "@/components/AccessPlanSection";
+import FAQSection from "@/components/FAQSection";
 
 const benefits = [
   {
@@ -53,7 +55,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero */}
-      <section className="px-4 pt-8 pb-6">
+      <section className="px-4 pt-1 pb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,7 +110,7 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="px-4 py-6"
+        className="px-4 py-2"
       >
         <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
@@ -125,37 +127,47 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      {/* What is DASH */}
-      <section className="px-4 py-8">
-        <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-3xl p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            What is the DASH Diet?
-          </h2>
-          <p className="text-sm text-gray-600 leading-relaxed mb-4">
-            DASH stands for <strong>Dietary Approaches to Stop Hypertension</strong>.
-            Developed by the NIH, it&apos;s ranked the #1 best diet for healthy eating
-            and is proven to lower blood pressure, reduce cholesterol, and promote
-            sustainable weight loss.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {[
-              "Fruits",
-              "Vegetables",
-              "Whole grains",
-              "Lean protein",
-              "Low-fat dairy",
-              "Nuts & seeds",
-            ].map((food) => (
-              <span
-                key={food}
-                className="bg-white/80 text-dash-blue text-xs font-medium px-3 py-1.5 rounded-full"
-              >
-                {food}
-              </span>
-            ))}
-          </div>
+      {/* As Seen In - Media Coverage */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="px-4 py-6 bg-gray-50 rounded-2xl"
+      >
+        <p className="text-center text-xs font-medium text-gray-400 mb-4 uppercase tracking-wide">
+          As Featured In
+        </p>
+        <div className="flex items-center justify-center gap-6 flex-wrap opacity-60 grayscale">
+          <Image
+            src="/photos/forbes.svg"
+            alt="Forbes"
+            width={70}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/cnn.svg"
+            alt="CNN"
+            width={50}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/bbc.svg"
+            alt="BBC"
+            width={50}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/the_guardian.svg"
+            alt="The Guardian"
+            width={100}
+            height={20}
+            className="h-5 w-auto"
+          />
         </div>
-      </section>
+      </motion.section>
 
       {/* Benefits */}
       <section className="px-4 py-6">
@@ -211,30 +223,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials with Trustpilot */}
       <section className="px-4 py-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-5">
-          Real Results
-        </h2>
-        <div className="space-y-4">
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            Trusted by Thousands
+          </h2>
+
+          {/* Trustpilot Rating */}
+          <div className="inline-flex flex-col items-center gap-2 bg-gradient-to-br from-green-50 to-emerald-50 px-6 py-4 rounded-2xl border border-green-100">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-gray-900">4.8</span>
+              <Image
+                src="/photos/stars-5-1.svg"
+                alt="5 stars"
+                width={100}
+                height={20}
+                className="h-5 w-auto"
+              />
+            </div>
+            <p className="text-xs text-gray-600">
+              Based on <span className="font-semibold">3,247 reviews</span>
+            </p>
+            <Image
+              src="/photos/trustpilot-1.svg"
+              alt="Trustpilot"
+              width={80}
+              height={20}
+              className="h-4 w-auto"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
           {[
             {
+              name: "James M.",
+              initial: "JM",
+              bgColor: "bg-teal-200",
+              text: "I was skeptical about another diet plan, but this one is different. The personalized approach helped me lower my blood pressure naturally in just 6 weeks. My doctor is impressed with my progress and I feel great!",
+              timeAgo: "3d ago",
+              verified: true
+            },
+            {
               name: "Sarah K.",
-              age: 42,
-              text: "Lost 15 lbs in 3 months and my blood pressure dropped to normal. The meal plans are easy to follow!",
-              rating: 5,
+              initial: "SK",
+              bgColor: "bg-blue-200",
+              text: "Lost 18 pounds in 2 months! My blood pressure is finally under control and I have so much more energy. The personalized meal plans made it incredibly easy to follow.",
+              timeAgo: "1w ago",
+              verified: true
             },
             {
               name: "Michael R.",
-              age: 55,
-              text: "My doctor told me to try DASH. This plan made it so simple. Down 20 lbs and off my BP medication.",
-              rating: 5,
-            },
-            {
-              name: "Jessica L.",
-              age: 34,
-              text: "I love that the meals are delicious and I don't feel like I'm on a diet. More energy than ever!",
-              rating: 5,
+              initial: "MR",
+              bgColor: "bg-purple-200",
+              text: "My doctor recommended the DASH diet and this app made it simple to follow. I'm off my blood pressure medication and feel healthier than I have in years!",
+              timeAgo: "2w ago",
+              verified: true
             },
           ].map((testimonial, i) => (
             <motion.div
@@ -243,34 +288,107 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="p-4 bg-gray-50 rounded-2xl"
+              className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm"
             >
-              <div className="flex items-center gap-1 mb-2">
-                {Array.from({ length: testimonial.rating }).map((_, j) => (
-                  <svg
-                    key={j}
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="#f59e0b"
-                  >
-                    <path d="M8 1l2.2 4.5L15 6.3l-3.5 3.4.8 4.8L8 12.2 3.7 14.5l.8-4.8L1 6.3l4.8-.8L8 1z" />
-                  </svg>
-                ))}
+              {/* Header with avatar and name */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 ${testimonial.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-gray-800 font-bold text-sm">
+                      {testimonial.initial}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {testimonial.name}
+                      </span>
+                      {testimonial.verified && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <circle cx="8" cy="8" r="7" fill="#00b67a"/>
+                          <path d="M5 8l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      <span className="text-xs text-gray-500 font-medium">Verified</span>
+                    </div>
+                    <div className="flex items-center mt-0.5">
+                      <Image
+                        src="/photos/stars-5-1.svg"
+                        alt="5 stars"
+                        width={70}
+                        height={14}
+                        className="h-3.5 w-auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400 flex-shrink-0">
+                  {testimonial.timeAgo}
+                </span>
               </div>
-              <p className="text-sm text-gray-700 mb-2">
-                &ldquo;{testimonial.text}&rdquo;
-              </p>
-              <p className="text-xs text-gray-500">
-                {testimonial.name}, age {testimonial.age}
+
+              {/* Title */}
+              <h3 className="font-bold text-gray-900 text-sm mb-2">
+                {i === 0 ? "Eye-opening experience" : i === 1 ? "Life-changing results" : "Best decision ever"}
+              </h3>
+
+              {/* Review text */}
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {testimonial.text}
               </p>
             </motion.div>
           ))}
         </div>
       </section>
 
+      {/* Expert Credentials */}
+      <section className="px-4 py-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 border border-blue-100">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 flex-shrink-0">
+              <Image
+                src="/photos/Harvard.png"
+                alt="Harvard"
+                width={80}
+                height={80}
+                className="w-full h-full"
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                Created by Harvard Experts
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Our personalized DASH diet plans are developed in collaboration with
+                nutrition researchers from <span className="font-semibold text-gray-900">Harvard Medical School</span> and
+                leading cardiovascular health experts. Science-backed nutrition you can trust.
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-1">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="#1e3a5f" strokeWidth="1.5"/>
+                    <path d="M5 8l2 2 4-4" stroke="#1e3a5f" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">Evidence-based</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="#1e3a5f" strokeWidth="1.5"/>
+                    <path d="M5 8l2 2 4-4" stroke="#1e3a5f" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">Clinically proven</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <FAQSection />
+
       {/* Bottom CTA */}
-      <section className="px-4 py-8 pb-12">
+      <section className="px-4 py-4 pb-4">
         <div className="bg-gradient-to-br from-dash-blue to-primary-800 rounded-3xl p-6 text-center text-white">
           <h2 className="text-xl font-bold mb-2">
             Ready to transform your health?

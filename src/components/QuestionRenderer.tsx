@@ -26,10 +26,10 @@ export default function QuestionRenderer({
     <AnimatePresence mode="wait">
       <motion.div
         key={question.id}
-        initial={{ opacity: 0, x: 50 }}
+        initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -50 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
         className="px-4 pb-32"
       >
         <div className="mb-8">
@@ -122,9 +122,9 @@ function SingleSelect({
       {question.options?.map((option, i) => (
         <motion.button
           key={option.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }}
+          transition={{ delay: i * 0.03, duration: 0.2, ease: "easeOut" }}
           className={`option-card flex items-center gap-3 ${
             value === option.id ? "option-card-selected" : ""
           }`}
@@ -184,15 +184,25 @@ function MultipleSelect({
 }) {
   const toggleOption = (optionId: string) => {
     if (isNoneOption(optionId)) {
-      onChange([optionId]);
-      // Auto-advance when "none" is selected
-      setTimeout(() => onNext(true), 300);
+      // If "none" is already selected, deselect it
+      if (value.includes(optionId)) {
+        onChange([]);
+      } else {
+        // Clear all other options and select only "none"
+        onChange([optionId]);
+        // Auto-advance when "none" is selected
+        setTimeout(() => onNext(true), 300);
+      }
       return;
     }
+
+    // For regular options, filter out any "none" options first
     const filtered = value.filter((v) => !isNoneOption(v));
     if (filtered.includes(optionId)) {
+      // Deselect this option
       onChange(filtered.filter((v) => v !== optionId));
     } else {
+      // Select this option
       onChange([...filtered, optionId]);
     }
   };
@@ -218,9 +228,9 @@ function MultipleSelect({
             )}
 
             <motion.button
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.03, duration: 0.2, ease: "easeOut" }}
               className={`option-card flex items-center gap-3 ${
                 value.includes(option.id) ? "option-card-selected" : ""
               }`}
@@ -278,9 +288,9 @@ function GenderSelect({
       {question.options?.map((option, i) => (
         <motion.button
           key={option.id}
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: i * 0.1 }}
+          transition={{ delay: i * 0.05, duration: 0.2, ease: "easeOut" }}
           className={`flex flex-col items-center gap-3 p-6 rounded-3xl border-2 transition-all
             ${
               value === option.id
@@ -311,9 +321,9 @@ function BodyTypeSelect({
       {question.options?.map((option, i) => (
         <motion.button
           key={option.id}
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: i * 0.08 }}
+          transition={{ delay: i * 0.04, duration: 0.2, ease: "easeOut" }}
           className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all
             ${
               value === option.id
@@ -623,9 +633,9 @@ function ScaleSelect({
       {question.options?.map((option, i) => (
         <motion.button
           key={option.id}
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.08 }}
+          transition={{ delay: i * 0.04, duration: 0.2, ease: "easeOut" }}
           className={`option-card flex items-center gap-3 ${
             value === option.id ? "option-card-selected" : ""
           }`}

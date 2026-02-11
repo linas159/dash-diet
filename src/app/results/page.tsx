@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { useQuizStore } from "@/lib/store";
 import {
   calculateBMI,
@@ -12,6 +13,9 @@ import {
   getWeightLossProjection,
 } from "@/lib/utils";
 import CountdownTimer from "@/components/CountdownTimer";
+import FAQSection from "@/components/FAQSection";
+import BodyTransformationCard from "@/components/BodyTransformationCard";
+import SafeCheckout from "@/components/SafeCheckout";
 import { useState } from "react";
 
 const pricingPlans = [
@@ -125,61 +129,13 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* BMI Card */}
-      <div className="px-4 -mt-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card p-5"
-        >
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Body Mass Index
-          </h3>
-
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-4xl font-bold" style={{ color: bmiColor }}>
-                {bmi}
-              </div>
-              <div className="text-sm font-medium" style={{ color: bmiColor }}>
-                {bmiCategory}
-              </div>
-            </div>
-
-            <div className="text-right space-y-1">
-              <div className="text-xs text-gray-500">
-                Current: <span className="font-bold text-gray-900">{weight} kg</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Target: <span className="font-bold text-dash-teal">{targetWeight} kg</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Height: <span className="font-bold text-gray-900">{height} cm</span>
-              </div>
-            </div>
-          </div>
-
-          {/* BMI scale bar */}
-          <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 to-red-500">
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-5 bg-white rounded-sm border-2 shadow-md"
-              style={{
-                borderColor: bmiColor,
-                left: `${Math.min(Math.max(((bmi - 15) / 30) * 100, 2), 98)}%`,
-                transform: "translate(-50%, -50%)",
-              }}
-            />
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-gray-400">15</span>
-            <span className="text-[10px] text-gray-400">20</span>
-            <span className="text-[10px] text-gray-400">25</span>
-            <span className="text-[10px] text-gray-400">30</span>
-            <span className="text-[10px] text-gray-400">35+</span>
-          </div>
-        </motion.div>
-      </div>
+      {/* Body Transformation Card */}
+      <BodyTransformationCard
+        gender={gender}
+        currentWeight={weight}
+        targetWeight={targetWeight}
+        height={height}
+      />
 
       {/* Key Metrics */}
       <div className="px-4 mt-4">
@@ -238,63 +194,106 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* Progress Timeline */}
-      <div className="px-4 mt-6">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="bg-gradient-to-br from-dash-blue/5 to-dash-teal/5 rounded-2xl p-5 border border-dash-blue/10"
-        >
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span>🎯</span> Your 12-Week Transformation
-          </h3>
-          <div className="space-y-4">
-            {[
-              { week: "Week 1-2", title: "Adaptation Phase", desc: "Body adjusts to DASH diet, initial energy boost", icon: "🌱" },
-              { week: "Week 3-4", title: "Momentum Building", desc: "Notice changes in energy and sleep quality", icon: "⚡" },
-              { week: "Week 5-8", title: "Visible Results", desc: "See improvements in weight and blood pressure", icon: "📈" },
-              { week: "Week 9-12", title: "Habit Formation", desc: "DASH lifestyle becomes second nature", icon: "✨" },
-            ].map((phase, i) => (
-              <motion.div
-                key={phase.week}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.1 }}
-                className="flex gap-3"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg">
-                  {phase.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-bold text-dash-teal">
-                      {phase.week}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {phase.title}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {phase.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+      {/* Pricing */}
+      <div className="px-4 mt-8" id="pricing">
+        <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">
+          Choose Your Plan
+        </h2>
+        <p className="text-sm text-gray-500 text-center mb-5">
+          Cancel anytime. 30-day money-back guarantee.
+        </p>
 
-          {weightDiff > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Expected weight at Week 12:</span>
-                <span className="font-bold text-dash-teal text-lg">
-                  {Math.round((weight - Math.min(weightDiff, weeksToGoal * 0.5)) * 10) / 10} kg
-                </span>
+        <div className="space-y-3">
+          {pricingPlans.map((plan) => (
+            <motion.button
+              key={plan.id}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`relative w-full p-4 rounded-2xl border-2 text-left transition-all ${
+                selectedPlan === plan.id
+                  ? "border-dash-blue bg-primary-50 ring-2 ring-primary-200"
+                  : "border-gray-200"
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-4 bg-gradient-to-r from-dash-teal to-dash-green text-white text-xs font-bold px-3 py-1 rounded-full">
+                  MOST POPULAR
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pr-8">
+                <div>
+                  <div className="font-semibold text-gray-900">{plan.name}</div>
+                  {plan.savings && (
+                    <div className="text-xs text-dash-teal font-medium mt-0.5">
+                      Save {plan.savings}
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-sm text-gray-400 line-through">
+                      ${plan.originalPrice.toFixed(2)}
+                    </span>
+                    <span className="text-2xl font-bold text-gray-900">
+                      ${plan.price}
+                    </span>
+                    {plan.period && (
+                      <span className="text-sm text-gray-500">{plan.period}</span>
+                    )}
+                  </div>
+                  {plan.totalPrice && (
+                    <div className="text-[11px] text-gray-400">
+                      ${plan.totalPrice} total
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </motion.div>
+
+              {/* Radio indicator */}
+              <div
+                className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  selectedPlan === plan.id
+                    ? "border-dash-blue"
+                    : "border-gray-300"
+                }`}
+              >
+                {selectedPlan === plan.id && (
+                  <div className="w-3 h-3 rounded-full bg-dash-blue" />
+                )}
+              </div>
+            </motion.button>
+          ))}
+        </div>
       </div>
+
+      {/* Checkout CTA */}
+      <div className="px-4 mt-6">
+        <button
+          onClick={handleCheckout}
+          className="btn-accent relative overflow-hidden"
+        >
+          GET MY PLAN — $
+          {pricingPlans.find((p) => p.id === selectedPlan)?.price}
+          {pricingPlans.find((p) => p.id === selectedPlan)?.period || ""}
+        </button>
+      </div>
+
+      {/* Safe Checkout */}
+      <div className="px-4">
+
+        {(() => {
+          const plan = pricingPlans.find((p) => p.id === selectedPlan);
+          if (!plan) return null;
+          return (
+            <p className="text-[10px] leading-snug text-gray-300 mt-4 px-2 text-center">
+              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at help@dash.diet.
+            </p>
+          );
+        })()}
+      </div>
+      <SafeCheckout />
 
       {/* What You'll Get */}
       <div className="px-4 mt-8">
@@ -364,6 +363,212 @@ export default function ResultsPage() {
           ))}
         </div>
       </div>
+
+      {/* As Seen In - Media Coverage */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="px-4 py-6 bg-gray-50 rounded-2xl mt-8"
+      >
+        <p className="text-center text-xs font-medium text-gray-400 mb-4 uppercase tracking-wide">
+          As Featured In
+        </p>
+        <div className="flex items-center justify-center gap-6 flex-wrap opacity-60 grayscale">
+          <Image
+            src="/photos/forbes.svg"
+            alt="Forbes"
+            width={70}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/cnn.svg"
+            alt="CNN"
+            width={50}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/bbc.svg"
+            alt="BBC"
+            width={50}
+            height={20}
+            className="h-5 w-auto"
+          />
+          <Image
+            src="/photos/the_guardian.svg"
+            alt="The Guardian"
+            width={100}
+            height={20}
+            className="h-5 w-auto"
+          />
+        </div>
+      </motion.section>
+
+      {/* Testimonials with Trustpilot */}
+      <section className="px-4 py-6">
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            Trusted by Thousands
+          </h2>
+
+          {/* Trustpilot Rating */}
+          <div className="inline-flex flex-col items-center gap-2 bg-gradient-to-br from-green-50 to-emerald-50 px-6 py-4 rounded-2xl border border-green-100">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-gray-900">4.8</span>
+              <Image
+                src="/photos/stars-5-1.svg"
+                alt="5 stars"
+                width={100}
+                height={20}
+                className="h-5 w-auto"
+              />
+            </div>
+            <p className="text-xs text-gray-600">
+              Based on <span className="font-semibold">3,247 reviews</span>
+            </p>
+            <Image
+              src="/photos/trustpilot-1.svg"
+              alt="Trustpilot"
+              width={80}
+              height={20}
+              className="h-4 w-auto"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            {
+              name: "James M.",
+              initial: "JM",
+              bgColor: "bg-teal-200",
+              text: "I was skeptical about another diet plan, but this one is different. The personalized approach helped me lower my blood pressure naturally in just 6 weeks. My doctor is impressed with my progress and I feel great!",
+              timeAgo: "3d ago",
+              verified: true
+            },
+            {
+              name: "Sarah K.",
+              initial: "SK",
+              bgColor: "bg-blue-200",
+              text: "Lost 18 pounds in 2 months! My blood pressure is finally under control and I have so much more energy. The personalized meal plans made it incredibly easy to follow.",
+              timeAgo: "1w ago",
+              verified: true
+            },
+            {
+              name: "Michael R.",
+              initial: "MR",
+              bgColor: "bg-purple-200",
+              text: "My doctor recommended the DASH diet and this app made it simple to follow. I'm off my blood pressure medication and feel healthier than I have in years!",
+              timeAgo: "2w ago",
+              verified: true
+            },
+          ].map((testimonial, i) => (
+            <motion.div
+              key={testimonial.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm"
+            >
+              {/* Header with avatar and name */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 ${testimonial.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-gray-800 font-bold text-sm">
+                      {testimonial.initial}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {testimonial.name}
+                      </span>
+                      {testimonial.verified && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <circle cx="8" cy="8" r="7" fill="#00b67a"/>
+                          <path d="M5 8l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      <span className="text-xs text-gray-500 font-medium">Verified</span>
+                    </div>
+                    <div className="flex items-center mt-0.5">
+                      <Image
+                        src="/photos/stars-5-1.svg"
+                        alt="5 stars"
+                        width={70}
+                        height={14}
+                        className="h-3.5 w-auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400 flex-shrink-0">
+                  {testimonial.timeAgo}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="font-bold text-gray-900 text-sm mb-2">
+                {i === 0 ? "Eye-opening experience" : i === 1 ? "Life-changing results" : "Best decision ever"}
+              </h3>
+
+              {/* Review text */}
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {testimonial.text}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Expert Credentials */}
+      <section className="px-4 py-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 border border-blue-100">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 flex-shrink-0">
+              <Image
+                src="/photos/Harvard.png"
+                alt="Harvard"
+                width={80}
+                height={80}
+                className="w-full h-full"
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                Created by Harvard Experts
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Our personalized DASH diet plans are developed in collaboration with
+                nutrition researchers from <span className="font-semibold text-gray-900">Harvard Medical School</span> and
+                leading cardiovascular health experts. Science-backed nutrition you can trust.
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-1">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="#1e3a5f" strokeWidth="1.5"/>
+                    <path d="M5 8l2 2 4-4" stroke="#1e3a5f" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">Evidence-based</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="#1e3a5f" strokeWidth="1.5"/>
+                    <path d="M5 8l2 2 4-4" stroke="#1e3a5f" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">Clinically proven</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* Limited Offer Banner */}
       <div className="px-4 mt-8">
@@ -468,37 +673,17 @@ export default function ResultsPage() {
           {pricingPlans.find((p) => p.id === selectedPlan)?.price}
           {pricingPlans.find((p) => p.id === selectedPlan)?.period || ""}
         </button>
-        <div className="flex items-center justify-center gap-4 mt-4">
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 1L3 5v5a2 2 0 002 2h4a2 2 0 002-2V5L7 1z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Secure checkout
-          </div>
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 13A6 6 0 107 1a6 6 0 000 12z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M4.5 7l2 2L10 5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            30-day guarantee
-          </div>
-        </div>
+        {/* Subscription terms */}
+        {(() => {
+          const plan = pricingPlans.find((p) => p.id === selectedPlan);
+          if (!plan) return null;
+          return (
+            <p className="text-[10px] leading-snug text-gray-300 mt-3 px-2 text-center">
+              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at help@dash.diet.
+            </p>
+          );
+        })()}
+        <SafeCheckout />
       </div>
 
       {/* Money-back guarantee */}
@@ -513,16 +698,6 @@ export default function ResultsPage() {
             No questions asked.
           </p>
         </div>
-        {/* Subscription terms */}
-        {(() => {
-          const plan = pricingPlans.find((p) => p.id === selectedPlan);
-          if (!plan) return null;
-          return (
-            <p className="text-[10px] leading-snug text-gray-300 mt-3 px-2 text-center">
-              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at help@dash.diet.
-            </p>
-          );
-        })()}
       </div>
 
       {/* Footer */}

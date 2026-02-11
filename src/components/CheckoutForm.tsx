@@ -9,6 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { motion } from "framer-motion";
 import { QuizAnswers } from "@/types/quiz";
+import SafeCheckout from "./SafeCheckout";
 
 const planDetails: Record<
   string,
@@ -300,40 +301,10 @@ export default function CheckoutForm({
         </button>
 
         {/* Guaranteed Safe Checkout */}
-        <div className="text-center pt-1">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Guaranteed Safe Checkout
-          </p>
-          {/* Payment method logos */}
-          <div className="flex items-center justify-center gap-3">
-            {/* Visa */}
-            <div className="h-6 px-2 bg-white border border-gray-200 rounded flex items-center">
-              <span className="text-[10px] font-bold text-[#1a1f71]">VISA</span>
-            </div>
-            {/* Mastercard */}
-            <div className="h-6 px-2 bg-white border border-gray-200 rounded flex items-center">
-              <div className="flex -space-x-1">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              </div>
-            </div>
-            {/* Google Pay */}
-            <div className="h-6 px-2 bg-white border border-gray-200 rounded flex items-center">
-              <span className="text-[9px] font-semibold text-gray-600">G Pay</span>
-            </div>
-            {/* Apple Pay */}
-            <div className="h-6 px-2 bg-white border border-gray-200 rounded flex items-center">
-              <span className="text-[9px] font-semibold text-gray-600">Pay</span>
-            </div>
-            {/* Stripe */}
-            <div className="h-6 px-2 bg-white border border-gray-200 rounded flex items-center">
-              <span className="text-[10px] font-bold text-[#635bff]">stripe</span>
-            </div>
-          </div>
-        </div>
+        <SafeCheckout />
 
         {/* Subscription terms */}
-        <p className="text-[10px] leading-snug text-gray-400 px-2 text-center pb-4">
+        <p className="text-[10px] leading-snug text-gray-400 px-2 text-center pb-4 mt-4">
           By proceeding with payment, you agree to be charged $
           {plan.price.toFixed(2)} now. After your {plan.trialLabel}, you will be
           billed ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod}{" "}
