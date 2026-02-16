@@ -79,13 +79,13 @@ export function getWeightLossProjection(
   targetWeight: number,
   weeks: number
 ): number[] {
-  const totalLoss = currentWeight - targetWeight;
-  const weeklyLoss = totalLoss / weeks;
+  const totalChange = currentWeight - targetWeight; // Negative if gaining
+  const weeklyChange = totalChange / weeks;
   const projections: number[] = [];
 
   for (let i = 0; i <= weeks; i++) {
     projections.push(
-      Math.round((currentWeight - weeklyLoss * i) * 10) / 10
+      Math.round((currentWeight - weeklyChange * i) * 10) / 10
     );
   }
 

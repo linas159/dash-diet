@@ -330,7 +330,7 @@ export const quizQuestions: QuizQuestion[] = [
     subtitle: "Be honest — this is just between us",
     type: "weight",
     min: 30,
-    max: 300,
+    max: 200,
     unit: "kg",
   },
   {
@@ -340,7 +340,7 @@ export const quizQuestions: QuizQuestion[] = [
     subtitle: "What weight would make you feel your best?",
     type: "weight",
     min: 30,
-    max: 300,
+    max: 200,
     unit: "kg",
   },
 ];

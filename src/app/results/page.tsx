@@ -85,7 +85,9 @@ export default function ResultsPage() {
     goal
   );
 
-  const weightDiff = weight - targetWeight;
+  const weightDiff = Math.abs(weight - targetWeight);
+  const isWeightLoss = weight > targetWeight;
+  const isWeightGain = weight < targetWeight;
   const weeksToGoal = Math.max(4, Math.round(weightDiff / 0.5));
   const projections = getWeightLossProjection(weight, targetWeight, Math.min(weeksToGoal, 12));
 
@@ -149,10 +151,10 @@ export default function ResultsPage() {
               color: "bg-orange-50",
             },
             {
-              label: "Weight to Lose",
-              value: weightDiff > 0 ? `${weightDiff}` : "0",
+              label: isWeightLoss ? "Weight to Lose" : "Weight to Gain",
+              value: weightDiff > 0 ? `${weightDiff.toFixed(1)}` : "0",
               unit: "kg",
-              emoji: "⚖️",
+              emoji: isWeightLoss ? "⬇️" : "⬆️",
               color: "bg-blue-50",
             },
             {

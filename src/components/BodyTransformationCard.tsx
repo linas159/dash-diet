@@ -16,8 +16,8 @@ function getBodyTypeImage(bmi: number, gender: string): string {
   const genderSuffix = gender === "female" ? "woman" : "man";
 
   if (bmi < 18.5) {
-    // Underweight - use very fit
-    return `/photos/very-fit-${genderSuffix}.png`;
+    // Underweight - use skinny image
+    return `/skinny ${genderSuffix}.png`;
   } else if (bmi < 25) {
     // Normal weight - use normal
     return `/photos/normal-${genderSuffix}.png`;
@@ -37,6 +37,13 @@ function getBodyTypeImage(bmi: number, gender: string): string {
 function getGoalBodyImage(currentBMI: number, targetBMI: number, gender: string): string {
   const genderSuffix = gender === "female" ? "woman" : "man";
 
+  // If target BMI is higher (weight gain), show healthier/more muscular image
+  if (targetBMI > currentBMI) {
+    // Weight gain scenario - always show athletic/very fit body as the goal
+    return `/photos/very-fit-${genderSuffix}.png`;
+  }
+
+  // Weight loss scenario
   // If target is normal/fit, show very fit to show aspirational goal
   if (targetBMI < 25) {
     return `/photos/very-fit-${genderSuffix}.png`;
@@ -52,16 +59,19 @@ function getGoalBodyImage(currentBMI: number, targetBMI: number, gender: string)
 // Calculate body fat percentage (estimation)
 function estimateBodyFat(bmi: number, gender: string): number {
   // Simplified estimation formula
+  let bodyFat: number;
   if (gender === "female") {
-    return Math.round((1.2 * bmi + 0.23 * 30 - 5.4) * 10) / 10;
+    bodyFat = 1.2 * bmi + 0.23 * 30 - 5.4;
   } else {
-    return Math.round((1.2 * bmi + 0.23 * 30 - 16.2) * 10) / 10;
+    bodyFat = 1.2 * bmi + 0.23 * 30 - 16.2;
   }
+  // Ensure body fat percentage stays within realistic bounds
+  return Math.round(Math.max(5, Math.min(50, bodyFat)) * 10) / 10;
 }
 
 // Get fitness level based on BMI
 function getFitnessLevel(bmi: number): { level: number; label: string; color: string } {
-  if (bmi < 18.5) return { level: 3, label: "Good", color: "bg-green-500" };
+  if (bmi < 18.5) return { level: 2, label: "Low", color: "bg-yellow-500" };
   if (bmi < 25) return { level: 4, label: "Excellent", color: "bg-green-500" };
   if (bmi < 30) return { level: 2, label: "Fair", color: "bg-yellow-500" };
   if (bmi < 35) return { level: 1, label: "Low", color: "bg-red-400" };
@@ -92,7 +102,7 @@ export default function BodyTransformationCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+        className="relative bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
       >
         <div className="grid grid-cols-2">
           {/* NOW - Current Body */}
