@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
@@ -80,26 +81,35 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error("Supabase insert error:", error);
-        } else if (quizAnswers) {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-          try {
-            const planResponse = await fetch(`${baseUrl}/api/generate-personalized-plan`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                subscriptionId: sessionSubId,
-                email: session.customer_email || session.customer_details?.email,
-                quizAnswers,
-              }),
-            });
+        } else {
+          const customerEmail = session.customer_email || session.customer_details?.email;
 
-            if (!planResponse.ok) {
-              console.error("Plan generation failed:", planResponse.status, await planResponse.text());
-            } else {
-              console.log("✅ Personalized plan generated via webhook");
+          if (quizAnswers) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+            try {
+              const planResponse = await fetch(`${baseUrl}/api/generate-personalized-plan`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  subscriptionId: sessionSubId,
+                  email: customerEmail,
+                  quizAnswers,
+                }),
+              });
+
+              if (!planResponse.ok) {
+                console.error("Plan generation failed:", planResponse.status, await planResponse.text());
+              } else {
+                console.log("✅ Personalized plan generated via webhook");
+              }
+            } catch (err) {
+              console.error("Plan generation request failed:", err);
             }
-          } catch (err) {
-            console.error("Plan generation request failed:", err);
+          }
+
+          // Send welcome email with plan link
+          if (customerEmail) {
+            await sendWelcomeEmail(customerEmail, sessionSubId);
           }
         }
       }

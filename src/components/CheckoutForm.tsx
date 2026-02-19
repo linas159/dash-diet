@@ -70,18 +70,25 @@ export default function CheckoutForm({
     setIsProcessing(true);
     setError(null);
 
-    const { error: setupError, setupIntent } = await stripe.confirmSetup({
-      elements,
-      redirect: "if_required",
-      confirmParams: {
-        return_url: `${window.location.origin}/checkout/success?plan_id=${planId}&customer_id=${customerId}`,
-      },
-    });
+    const { error: confirmError, paymentIntent } =
+      await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/success?plan_id=${planId}&customer_id=${customerId}`,
+        },
+      });
 
-    if (setupError) {
+    if (confirmError) {
       setError(
-        setupError.message || "Payment setup failed. Please try again."
+        confirmError.message || "Payment failed. Please try again."
       );
+      setIsProcessing(false);
+      return;
+    }
+
+    if (paymentIntent.status !== "succeeded") {
+      setError("Payment was not completed. Please try again.");
       setIsProcessing(false);
       return;
     }
@@ -92,7 +99,7 @@ export default function CheckoutForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
-          setupIntentId: setupIntent.id,
+          paymentIntentId: paymentIntent.id,
           planId,
           answers,
         }),

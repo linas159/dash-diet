@@ -15,7 +15,7 @@ function SuccessContent() {
   const directSubscriptionId = searchParams.get("subscription_id");
 
   // Redirect flow (PayPal): Stripe adds these params after redirect back
-  const setupIntentParam = searchParams.get("setup_intent");
+  const paymentIntentParam = searchParams.get("payment_intent");
   const planIdParam = searchParams.get("plan_id");
   const customerIdParam = searchParams.get("customer_id");
 
@@ -35,8 +35,8 @@ function SuccessContent() {
       return;
     }
 
-    // Redirect flow: we have a setup_intent from PayPal/redirect-based payment
-    if (setupIntentParam && planIdParam && customerIdParam) {
+    // Redirect flow: we have a payment_intent from PayPal/redirect-based payment
+    if (paymentIntentParam && planIdParam && customerIdParam) {
       // Prevent double-call from React Strict Mode
       if (confirmedRef.current) return;
       confirmedRef.current = true;
@@ -47,7 +47,7 @@ function SuccessContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId: customerIdParam,
-          setupIntentId: setupIntentParam,
+          paymentIntentId: paymentIntentParam,
           planId: planIdParam,
           answers: answers || {},
         }),
@@ -70,7 +70,7 @@ function SuccessContent() {
       // No params at all — show success anyway (edge case)
       setStatus("success");
     }
-  }, [directSubscriptionId, setupIntentParam, planIdParam, customerIdParam, answers]);
+  }, [directSubscriptionId, paymentIntentParam, planIdParam, customerIdParam, answers]);
 
   if (status === "loading") {
     return (

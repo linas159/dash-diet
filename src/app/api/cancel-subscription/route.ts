@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase";
+import { sendCancellationEmail } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
@@ -52,11 +53,16 @@ export async function POST(request: NextRequest) {
     // The webhook will handle updating the Supabase status when Stripe
     // fires the customer.subscription.updated event
 
+    const cancelAtIso = updatedSubscription.current_period_end
+      ? new Date(updatedSubscription.current_period_end * 1000).toISOString()
+      : null;
+
+    // Send cancellation confirmation email
+    await sendCancellationEmail(normalizedEmail, cancelAtIso || undefined);
+
     return NextResponse.json({
       success: true,
-      cancelAt: updatedSubscription.current_period_end
-        ? new Date(updatedSubscription.current_period_end * 1000).toISOString()
-        : null,
+      cancelAt: cancelAtIso,
     });
   } catch (error) {
     console.error("Cancel subscription error:", error);

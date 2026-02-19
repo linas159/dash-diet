@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!.trim());
 
@@ -11,31 +12,19 @@ const priceMap: Record<string, string> = {
   quarterly: process.env.STRIPE_PRICE_QUARTERLY!.trim(),
 };
 
-// Intro pricing: trial days + the one-time intro price ID from Stripe
-const introConfig: Record<
-  string,
-  { trialDays: number; introPriceId: string }
-> = {
-  "7day": {
-    trialDays: 7,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_7DAY!.trim(),
-  },
-  monthly: {
-    trialDays: 30,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_MONTHLY!.trim(),
-  },
-  quarterly: {
-    trialDays: 90,
-    introPriceId: process.env.STRIPE_INTRO_PRICE_QUARTERLY!.trim(),
-  },
+// Trial days per plan (intro charge is handled separately via PaymentIntent)
+const trialConfig: Record<string, number> = {
+  "7day": 7,
+  monthly: 30,
+  quarterly: 90,
 };
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { customerId, setupIntentId, planId, answers } = body;
+    const { customerId, paymentIntentId, planId, answers } = body;
 
-    if (!customerId || !setupIntentId || !planId) {
+    if (!customerId || !paymentIntentId || !planId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -43,20 +32,28 @@ export async function POST(request: NextRequest) {
     }
 
     const recurringPriceId = priceMap[planId];
-    const intro = introConfig[planId];
+    const trialDays = trialConfig[planId];
 
-    if (!recurringPriceId || !intro) {
+    if (!recurringPriceId || !trialDays) {
       return NextResponse.json(
         { error: "Invalid plan" },
         { status: 400 }
       );
     }
 
-    // Retrieve the SetupIntent — use ITS customer (the one with the PM attached)
-    const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
-    const paymentMethodId = setupIntent.payment_method as string;
-    // Always trust the SetupIntent's customer, not the one from the client
-    const actualCustomerId = setupIntent.customer as string;
+    // Retrieve the PaymentIntent — use ITS customer (the one with the PM attached)
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentMethodId = paymentIntent.payment_method as string;
+    // Always trust the PaymentIntent's customer, not the one from the client
+    const actualCustomerId = paymentIntent.customer as string;
+
+    // Verify the payment was actually successful
+    if (paymentIntent.status !== "succeeded") {
+      return NextResponse.json(
+        { error: "Payment has not been completed" },
+        { status: 400 }
+      );
+    }
 
     if (!paymentMethodId) {
       return NextResponse.json(
@@ -65,30 +62,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Idempotency guard: check if subscription already exists for this customer
+    const existingSubs = await stripe.subscriptions.list({
+      customer: actualCustomerId,
+      limit: 1,
+    });
+    if (existingSubs.data.length > 0) {
+      return NextResponse.json({
+        subscriptionId: existingSubs.data[0].id,
+        status: existingSubs.data[0].status,
+      });
+    }
+
     // Set as default payment method on the actual customer
     await stripe.customers.update(actualCustomerId, {
       invoice_settings: { default_payment_method: paymentMethodId },
     });
 
-    // Create the subscription with trial + one-time intro charge
+    // Create the subscription with trial period
+    // Intro charge was already collected via PaymentIntent — no add_invoice_items needed
     const subscription = await stripe.subscriptions.create({
       customer: actualCustomerId,
       items: [{ price: recurringPriceId }],
-      trial_period_days: intro.trialDays,
+      trial_period_days: trialDays,
       default_payment_method: paymentMethodId,
-      add_invoice_items: [
-        {
-          price: intro.introPriceId,
-          quantity: 1,
-        },
-      ],
       metadata: {
         quizAnswers: JSON.stringify(answers).slice(0, 500),
         planId,
       },
     });
 
-    // Direct Supabase insert (don't rely solely on webhooks for local dev)
+    // Direct Supabase insert (don't rely solely on webhooks)
     try {
       const customer = await stripe.customers.retrieve(actualCustomerId);
       const customerEmail = (customer as Stripe.Customer).email || null;
@@ -129,6 +133,20 @@ export async function POST(request: NextRequest) {
           console.error("Plan generation request failed:", planErr);
           // Don't fail the checkout — plan can be generated later via get-plan fallback
         }
+      }
+
+      // Send welcome email with plan link
+      if (customerEmail) {
+        const planNames: Record<string, string> = {
+          "7day": "7-Day Plan",
+          monthly: "Monthly Plan",
+          quarterly: "Quarterly Plan",
+        };
+        await sendWelcomeEmail(
+          customerEmail,
+          subscription.id,
+          planNames[planId] || undefined
+        );
       }
     } catch (dbError) {
       console.error("Supabase direct insert error:", dbError);
