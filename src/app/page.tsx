@@ -46,11 +46,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-dash-blue to-dash-teal rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">D</span>
-          </div>
-          <span className="font-bold text-lg text-dash-blue">DashDiet</span>
+        <div className="flex items-center">
+          <Image
+            src="/dash-diet-logo.svg"
+            alt="DashDiet"
+            width={240}
+            height={80}
+            className="h-14 w-auto"
+          />
         </div>
       </header>
 
@@ -408,19 +411,23 @@ export default function HomePage() {
       <AccessPlanSection />
 
       {/* Footer */}
-      <footer className="px-4 py-6 border-t border-gray-100">
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-dash-blue to-dash-teal rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">D</span>
-            </div>
-            <span className="font-bold text-sm text-gray-900">DashDiet</span>
+      <footer className="px-4 py-4 border-t border-gray-100">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center">
+            <Image
+              src="/dash-diet-logo.svg"
+              alt="DashDiet"
+              width={200}
+              height={56}
+              className="h-10 w-auto"
+            />
           </div>
           <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
             <Link href="/terms" className="hover:text-gray-600">Terms</Link>
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
             <Link href="/cookies" className="hover:text-gray-600">Cookies</Link>
             <Link href="/contact" className="hover:text-gray-600">Contact</Link>
+            <Link href="/cancel" className="hover:text-gray-600">Cancel</Link>
           </div>
           <p className="text-xs text-gray-400">
             &copy; {new Date().getFullYear()} DashDiet. All rights reserved.

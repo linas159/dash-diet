@@ -46,11 +46,12 @@ export default function AccessPlanSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           className="text-center"
+          suppressHydrationWarning
         >
           <p className="text-sm text-gray-500 mb-3">Already have a plan?</p>
 
           <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
-            <div className="flex gap-2">
+            <div className="flex gap-2" suppressHydrationWarning>
               <input
                 type="email"
                 value={email}
@@ -59,6 +60,7 @@ export default function AccessPlanSection() {
                 required
                 disabled={loading}
                 className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dash-blue/20 focus:border-dash-blue transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                suppressHydrationWarning
               />
               <button
                 type="submit"

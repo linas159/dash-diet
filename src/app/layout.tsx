@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import CookieBanner from "@/components/CookieBanner";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://trydashdiet.com"),
   title: "DASH Diet Plan — Personalized for You",
   description:
     "Get your personalized DASH diet meal plan, exercise routine, and food combinations based on science. Lower blood pressure, lose weight, and feel amazing.",
@@ -14,6 +16,12 @@ export const metadata: Metadata = {
     "weight loss",
     "exercise plan",
   ],
+  icons: {
+    icon: [
+      { url: "/dash-diet-favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/dash-diet-favicon.svg",
+  },
   openGraph: {
     title: "DASH Diet Plan — Personalized for You",
     description:
@@ -41,6 +49,7 @@ export default function RootLayout({
         <main className="max-w-md mx-auto min-h-screen relative">
           {children}
         </main>
+        <CookieBanner />
       </body>
     </html>
   );

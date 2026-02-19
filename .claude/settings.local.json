@@ -37,7 +37,12 @@
       "Bash(vercel whoami:*)",
       "Bash(vercel:*)",
       "Bash(bash:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx next build)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(wmic process where \"name=''node.exe''\" get ProcessId,CommandLine)",
+      "Bash(git rm:*)"
     ]
   }
 }

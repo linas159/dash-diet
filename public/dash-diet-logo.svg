@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 42 390 100" width="390" height="100">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E74C3C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0392B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#27AE60;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E8449;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Heart icon -->
+  <path d="M80 75 C80 60, 65 50, 55 55 C45 60, 42 72, 55 85 L80 105 L105 85 C118 72, 115 60, 105 55 C95 50, 80 60, 80 75 Z" fill="url(#heartGrad)" />
+
+  <!-- Small leaf on heart -->
+  <path d="M92 58 Q102 48 112 52 Q108 62 98 65 Z" fill="url(#leafGrad)" />
+  <line x1="98" y1="65" x2="105" y2="53" stroke="#1E8449" stroke-width="1" fill="none" />
+
+  <!-- Pulse line through heart -->
+  <polyline points="40,82 60,82 70,68 80,95 90,72 100,82 120,82" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+
+  <!-- DASH text -->
+  <text x="140" y="97" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="64" fill="#2C3E50" letter-spacing="4">DASH</text>
+
+  <!-- diet text -->
+  <text x="144" y="124" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="300" font-size="26" fill="#7F8C8D" letter-spacing="8">diet</text>
+
+  <!-- Subtle underline -->
+  <line x1="140" y1="132" x2="370" y2="132" stroke="#E74C3C" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+</svg>

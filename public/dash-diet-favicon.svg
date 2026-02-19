@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E74C3C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0392B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#27AE60;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E8449;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Heart -->
+  <path d="M32 18 C32 10, 22 4, 16 8 C10 12, 8 20, 16 30 L32 48 L48 30 C56 20, 54 12, 48 8 C42 4, 32 10, 32 18 Z" fill="url(#heartGrad)" />
+
+  <!-- Small leaf -->
+  <path d="M41 11 Q48 5 54 8 Q51 15 44 17 Z" fill="url(#leafGrad)" />
+  <line x1="44" y1="17" x2="49" y2="9" stroke="#1E8449" stroke-width="0.8" fill="none" />
+
+  <!-- Pulse line -->
+  <polyline points="6,28 18,28 24,18 32,38 38,22 44,28 58,28" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+</svg>

@@ -309,7 +309,7 @@ export default function CheckoutForm({
           {plan.price.toFixed(2)} now. After your {plan.trialLabel}, you will be
           billed ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod}{" "}
           until you cancel. You can cancel anytime. For any inquiries, contact
-          us at help@dash.diet.
+          us at support@trydashdiet.com.
         </p>
       </div>
     </form>

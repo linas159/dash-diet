@@ -290,7 +290,7 @@ export default function ResultsPage() {
           if (!plan) return null;
           return (
             <p className="text-[10px] leading-snug text-gray-300 mt-4 px-2 text-center">
-              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at help@dash.diet.
+              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at support@trydashdiet.com.
             </p>
           );
         })()}
@@ -681,7 +681,7 @@ export default function ResultsPage() {
           if (!plan) return null;
           return (
             <p className="text-[10px] leading-snug text-gray-300 mt-3 px-2 text-center">
-              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at help@dash.diet.
+              By clicking &ldquo;GET MY PLAN&rdquo;, I agree to pay ${plan.price.toFixed(2)} for my plan and that if I do not cancel before the end of the dash.diet {plan.trialLabel}, dash.diet will automatically charge my payment method the regular price of ${plan.renewalPrice.toFixed(2)} every {plan.renewalPeriod} thereafter until I cancel by contacting us at support@trydashdiet.com.
             </p>
           );
         })()}
@@ -710,6 +710,7 @@ export default function ResultsPage() {
             <Link href="/privacy" className="hover:text-gray-600">Privacy</Link>
             <Link href="/cookies" className="hover:text-gray-600">Cookies</Link>
             <Link href="/contact" className="hover:text-gray-600">Contact</Link>
+            <Link href="/cancel" className="hover:text-gray-600">Cancel</Link>
           </div>
           <p className="text-[11px] text-gray-400">
             Results may vary. The DASH diet plan is not a substitute for medical advice.

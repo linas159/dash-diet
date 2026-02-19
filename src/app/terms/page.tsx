@@ -1,14 +1,18 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="px-4 py-4 flex items-center gap-3 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-dash-blue to-dash-teal rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">D</span>
-          </div>
-          <span className="font-bold text-lg text-dash-blue">DashDiet</span>
+      <header className="px-4 py-1 flex items-center gap-3 border-b border-gray-100">
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/dash-diet-logo.svg"
+            alt="DashDiet"
+            width={240}
+            height={80}
+            className="h-20 w-auto"
+          />
         </Link>
       </header>
 
@@ -99,7 +103,7 @@ export default function TermsPage() {
             <h2 className="text-base font-semibold text-gray-900 mb-2">10. Contact</h2>
             <p className="text-sm leading-relaxed">
               For questions about these terms, please contact us at{" "}
-              <Link href="/contact" className="text-dash-blue hover:underline">support@dashdiet.com</Link>.
+              <Link href="/contact" className="text-dash-blue hover:underline">support@trydashdiet.com</Link>.
             </p>
           </section>
         </div>

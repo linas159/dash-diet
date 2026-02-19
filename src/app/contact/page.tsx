@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -17,12 +18,15 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="px-4 py-4 flex items-center gap-3 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-dash-blue to-dash-teal rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">D</span>
-          </div>
-          <span className="font-bold text-lg text-dash-blue">DashDiet</span>
+      <header className="px-4 py-1 flex items-center gap-3 border-b border-gray-100">
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/dash-diet-logo.svg"
+            alt="DashDiet"
+            width={240}
+            height={80}
+            className="h-20 w-auto"
+          />
         </Link>
       </header>
 
@@ -88,7 +92,7 @@ export default function ContactPage() {
           <div className="mt-12 p-5 bg-gray-50 rounded-2xl">
             <h3 className="font-semibold text-gray-900 mb-3">Other ways to reach us</h3>
             <div className="space-y-2 text-sm text-gray-600">
-              <p>Email: support@dashdiet.com</p>
+              <p>Email: support@trydashdiet.com</p>
               <p>Response time: Within 24 hours</p>
             </div>
           </div>

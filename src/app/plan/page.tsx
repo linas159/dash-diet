@@ -208,12 +208,15 @@ function PlanContent() {
   return (
     <div className="min-h-screen bg-white pb-8">
       {/* Header */}
-      <header className="px-4 py-4 flex items-center gap-3 border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-lg z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-dash-blue to-dash-teal rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">D</span>
-          </div>
-          <span className="font-bold text-lg text-dash-blue">Your Plan</span>
+      <header className="px-4 py-1 flex items-center gap-3 border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-lg z-10">
+        <div className="flex items-center">
+          <Image
+            src="/dash-diet-logo.svg"
+            alt="DashDiet"
+            width={240}
+            height={80}
+            className="h-14 w-auto"
+          />
         </div>
       </header>
 
