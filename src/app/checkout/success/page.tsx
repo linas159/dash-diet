@@ -36,68 +36,96 @@ function SuccessContent() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const confirmedRef = useRef(false);
 
+  // Wait for Zustand to rehydrate from sessionStorage before running the confirm call
+  const [storeReady, setStoreReady] = useState(false);
   useEffect(() => {
-    // If we already have a subscription ID (direct flow), we're done
-    if (directSubscriptionId) {
-      setStatus("success");
-      // Track purchase for direct flow
-      if (!purchaseTracked.current) {
-        purchaseTracked.current = true;
-        const planId = storedPlan || "monthly";
-        trackPurchase({
-          planId,
-          value: planPrices[planId] || 0,
-          subscriptionId: directSubscriptionId,
-        });
-      }
+    if (useQuizStore.persist.hasHydrated()) {
+      setStoreReady(true);
+    }
+    const unsub = useQuizStore.persist.onFinishHydration(() => {
+      setStoreReady(true);
+    });
+    return unsub;
+  }, []);
+
+  // Track purchase for direct flow (card / Apple Pay / Google Pay)
+  useEffect(() => {
+    if (!directSubscriptionId) return;
+    setStatus("success");
+    if (!purchaseTracked.current) {
+      purchaseTracked.current = true;
+      const planId = storedPlan || "monthly";
+      trackPurchase({
+        planId,
+        value: planPrices[planId] || 0,
+        subscriptionId: directSubscriptionId,
+      });
+    }
+  }, [directSubscriptionId, storedPlan]);
+
+  // Redirect flow (PayPal): confirm subscription after store is hydrated
+  useEffect(() => {
+    // Skip for direct flow — handled above
+    if (directSubscriptionId) return;
+
+    // Wait for store hydration so we have the real answers
+    if (!storeReady) return;
+
+    // Need all three redirect params
+    if (!paymentIntentParam || !planIdParam || !customerIdParam) {
+      setStatus("success"); // edge case — no params at all
       return;
     }
 
-    // Redirect flow: we have a payment_intent from PayPal/redirect-based payment
-    if (paymentIntentParam && planIdParam && customerIdParam) {
-      // Prevent double-call from React Strict Mode
-      if (confirmedRef.current) return;
-      confirmedRef.current = true;
+    // Prevent double-call from React Strict Mode
+    if (confirmedRef.current) return;
+    confirmedRef.current = true;
 
-      // Complete the subscription server-side
-      fetch("/api/confirm-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId: customerIdParam,
-          paymentIntentId: paymentIntentParam,
-          planId: planIdParam,
-          answers: answers || {},
-        }),
+    // Complete the subscription server-side
+    fetch("/api/confirm-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerId: customerIdParam,
+        paymentIntentId: paymentIntentParam,
+        planId: planIdParam,
+        answers: answers || {},
+      }),
+    })
+      .then(async (res) => {
+        // Handle non-JSON responses (e.g. server crash returning HTML)
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          console.error("Non-JSON response from confirm-subscription:", text.slice(0, 200));
+          throw new Error("Server error — please try again");
+        }
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            setErrorMessage(data.error);
-            setStatus("error");
-          } else {
-            setSubscriptionId(data.subscriptionId);
-            setStatus("success");
-            // Track purchase for redirect flow
-            if (!purchaseTracked.current) {
-              purchaseTracked.current = true;
-              trackPurchase({
-                planId: planIdParam!,
-                value: planPrices[planIdParam!] || 0,
-                subscriptionId: data.subscriptionId,
-              });
-            }
-          }
-        })
-        .catch(() => {
-          setErrorMessage("Failed to finalize your subscription. Please contact support.");
+      .then((data) => {
+        if (data.error) {
+          setErrorMessage(data.error);
           setStatus("error");
-        });
-    } else {
-      // No params at all — show success anyway (edge case)
-      setStatus("success");
-    }
-  }, [directSubscriptionId, paymentIntentParam, planIdParam, customerIdParam, answers, storedPlan]);
+        } else {
+          setSubscriptionId(data.subscriptionId);
+          setStatus("success");
+          // Track purchase for redirect flow
+          if (!purchaseTracked.current) {
+            purchaseTracked.current = true;
+            trackPurchase({
+              planId: planIdParam,
+              value: planPrices[planIdParam] || 0,
+              subscriptionId: data.subscriptionId,
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Confirm subscription fetch error:", err);
+        setErrorMessage("Failed to finalize your subscription. Please contact support.");
+        setStatus("error");
+      });
+  }, [storeReady, directSubscriptionId, paymentIntentParam, planIdParam, customerIdParam, answers]);
 
   if (status === "loading") {
     return (
@@ -111,7 +139,7 @@ function SuccessContent() {
   if (status === "error") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="text-4xl mb-4">&#x26A0;&#xFE0F;</div>
         <h1 className="text-xl font-bold text-gray-900 mb-2">Something Went Wrong</h1>
         <p className="text-sm text-gray-500 mb-6 max-w-sm">{errorMessage}</p>
         <Link href="/contact" className="text-dash-blue font-medium text-sm">

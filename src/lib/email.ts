@@ -1,6 +1,17 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-init to avoid crashing the module if RESEND_API_KEY is missing
+let _resend: Resend | null = null;
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY is not set — emails will be skipped");
+    return null;
+  }
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 const FROM_EMAIL = "DashDiet <noreply@trydashdiet.com>";
 const SUPPORT_EMAIL = "support@trydashdiet.com";
@@ -13,6 +24,12 @@ export async function sendWelcomeEmail(
   planName?: string
 ) {
   const planUrl = `${APP_URL}/plan?subscription_id=${subscriptionId}`;
+
+  const resend = getResend();
+  if (!resend) {
+    console.warn("Skipping welcome email — Resend not configured");
+    return { success: false, error: "Resend not configured" };
+  }
 
   try {
     const { error } = await resend.emails.send({
@@ -112,6 +129,12 @@ export async function sendCancellationEmail(
         day: "numeric",
       })
     : null;
+
+  const resend = getResend();
+  if (!resend) {
+    console.warn("Skipping cancellation email — Resend not configured");
+    return { success: false, error: "Resend not configured" };
+  }
 
   try {
     const { error } = await resend.emails.send({

@@ -9,7 +9,6 @@ interface QuizState {
   isGenerating: boolean;
   email: string;
   selectedPlan: string;
-  _hasHydrated: boolean;
   setCurrentStep: (step: number) => void;
   setAnswer: (questionId: string, value: string | string[] | number) => void;
   setPlan: (plan: GeneratedPlan) => void;
@@ -30,7 +29,6 @@ export const useQuizStore = create<QuizState>()(
       isGenerating: false,
       email: "",
       selectedPlan: "monthly",
-      _hasHydrated: false,
       setCurrentStep: (step) => set({ currentStep: step }),
       setAnswer: (questionId, value) =>
         set((state) => ({
@@ -66,12 +64,6 @@ export const useQuizStore = create<QuizState>()(
         selectedPlan: state.selectedPlan,
         plan: state.plan,
       }),
-      onRehydrateStorage: () => {
-        return () => {
-          // Mark hydration complete so guards don't redirect prematurely
-          useQuizStore.setState({ _hasHydrated: true });
-        };
-      },
     }
   )
 );

@@ -18,15 +18,27 @@ const planPrices: Record<string, number> = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { email, selectedPlan, answers, _hasHydrated } = useQuizStore();
+  const { email, selectedPlan, answers } = useQuizStore();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [storeReady, setStoreReady] = useState(false);
   const checkoutTracked = useRef(false);
+
+  // Wait for Zustand to rehydrate from sessionStorage before running guards
+  useEffect(() => {
+    if (useQuizStore.persist.hasHydrated()) {
+      setStoreReady(true);
+    }
+    const unsub = useQuizStore.persist.onFinishHydration(() => {
+      setStoreReady(true);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     // Wait for store to rehydrate from sessionStorage before checking guards
-    if (!_hasHydrated) return;
+    if (!storeReady) return;
 
     // Guard: redirect if no quiz data
     if (!answers || Object.keys(answers).length === 0) {
@@ -66,7 +78,7 @@ export default function CheckoutPage() {
       });
 
     return () => { cancelled = true; };
-  }, [_hasHydrated, answers, email, selectedPlan, router, clientSecret]);
+  }, [storeReady, answers, email, selectedPlan, router, clientSecret]);
 
   // Track InitiateCheckout once when the checkout page loads with a valid plan
   useEffect(() => {
