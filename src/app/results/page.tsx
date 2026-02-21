@@ -16,7 +16,12 @@ import CountdownTimer from "@/components/CountdownTimer";
 import FAQSection from "@/components/FAQSection";
 import BodyTransformationCard from "@/components/BodyTransformationCard";
 import SafeCheckout from "@/components/SafeCheckout";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import {
+  trackContentView,
+  trackPlanSelected,
+  trackCheckoutCTAClick,
+} from "@/lib/fbpixel";
 
 const pricingPlans = [
   {
@@ -62,7 +67,15 @@ const pricingPlans = [
 export default function ResultsPage() {
   const router = useRouter();
   const { answers, selectedPlan: storedPlan, setSelectedPlan: setStoredPlan } = useQuizStore();
-  const [selectedPlan, setSelectedPlan] = useState(storedPlan || "monthly");
+  const [selectedPlan, setSelectedPlanState] = useState(storedPlan || "monthly");
+
+  const setSelectedPlan = (planId: string) => {
+    setSelectedPlanState(planId);
+    const plan = pricingPlans.find((p) => p.id === planId);
+    if (plan) {
+      trackPlanSelected({ planId, planName: plan.name, price: plan.price });
+    }
+  };
 
   // Compute stats from answers
   const gender = (answers.gender as string) || "male";
@@ -91,7 +104,20 @@ export default function ResultsPage() {
   const weeksToGoal = Math.max(4, Math.round(weightDiff / 0.5));
   const projections = getWeightLossProjection(weight, targetWeight, Math.min(weeksToGoal, 12));
 
+  // Track ContentView once on results page load
+  const contentViewTracked = useRef(false);
+  useEffect(() => {
+    if (!contentViewTracked.current) {
+      contentViewTracked.current = true;
+      trackContentView({ bmi, dailyCalories, goal });
+    }
+  }, [bmi, dailyCalories, goal]);
+
   const handleCheckout = () => {
+    const plan = pricingPlans.find((p) => p.id === selectedPlan);
+    if (plan) {
+      trackCheckoutCTAClick({ planId: selectedPlan, value: plan.price });
+    }
     setStoredPlan(selectedPlan);
     router.push("/checkout");
   };

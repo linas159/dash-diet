@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Elements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/stripe";
 import { useQuizStore } from "@/lib/store";
 import CheckoutForm from "@/components/CheckoutForm";
+import { trackInitiateCheckout } from "@/lib/fbpixel";
 
 const stripePromise = getStripe();
+
+const planPrices: Record<string, number> = {
+  "7day": 2.95,
+  monthly: 9.99,
+  quarterly: 19.99,
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -15,6 +22,7 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const checkoutTracked = useRef(false);
 
   useEffect(() => {
     // Guard: redirect if no quiz data
@@ -56,6 +64,17 @@ export default function CheckoutPage() {
 
     return () => { cancelled = true; };
   }, [answers, email, selectedPlan, router, clientSecret]);
+
+  // Track InitiateCheckout once when the checkout page loads with a valid plan
+  useEffect(() => {
+    if (!checkoutTracked.current && selectedPlan) {
+      checkoutTracked.current = true;
+      trackInitiateCheckout({
+        planId: selectedPlan,
+        value: planPrices[selectedPlan] || 0,
+      });
+    }
+  }, [selectedPlan]);
 
   if (setupError) {
     return (

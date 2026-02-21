@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import AccessPlanSection from "@/components/AccessPlanSection";
 import FAQSection from "@/components/FAQSection";
+import { trackLandingPageView, trackQuizStartClick } from "@/lib/fbpixel";
 
 const benefits = [
   {
@@ -42,6 +44,10 @@ const steps = [
 ];
 
 export default function HomePage() {
+  useEffect(() => {
+    trackLandingPageView();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -88,7 +94,7 @@ export default function HomePage() {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="space-y-3"
         >
-          <Link href="/quiz" className="block">
+          <Link href="/quiz" className="block" onClick={trackQuizStartClick}>
             <button className="btn-primary flex items-center justify-center gap-2">
               <span>Start Free Quiz</span>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -399,7 +405,7 @@ export default function HomePage() {
           <p className="text-sm text-blue-200 mb-5">
             Take the free quiz and get your personalized DASH diet plan today.
           </p>
-          <Link href="/quiz">
+          <Link href="/quiz" onClick={trackQuizStartClick}>
             <button className="w-full py-4 px-6 bg-white text-dash-blue font-bold rounded-2xl text-lg transition-all active:scale-[0.98]">
               Get My Plan
             </button>

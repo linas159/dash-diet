@@ -10,6 +10,7 @@ import {
 import { motion } from "framer-motion";
 import { QuizAnswers } from "@/types/quiz";
 import SafeCheckout from "./SafeCheckout";
+import { trackPaymentSubmitted, trackPaymentFailed } from "@/lib/fbpixel";
 
 const planDetails: Record<
   string,
@@ -69,6 +70,7 @@ export default function CheckoutForm({
 
     setIsProcessing(true);
     setError(null);
+    trackPaymentSubmitted({ planId, value: plan.price });
 
     const { error: confirmError, paymentIntent } =
       await stripe.confirmPayment({
@@ -80,14 +82,15 @@ export default function CheckoutForm({
       });
 
     if (confirmError) {
-      setError(
-        confirmError.message || "Payment failed. Please try again."
-      );
+      const msg = confirmError.message || "Payment failed. Please try again.";
+      trackPaymentFailed({ planId, errorMessage: msg });
+      setError(msg);
       setIsProcessing(false);
       return;
     }
 
     if (paymentIntent.status !== "succeeded") {
+      trackPaymentFailed({ planId, errorMessage: "Payment was not completed" });
       setError("Payment was not completed. Please try again.");
       setIsProcessing(false);
       return;

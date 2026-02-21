@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
+import FacebookPixel from "@/components/FacebookPixel";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://trydashdiet.com"),
@@ -46,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
+        <FacebookPixel />
         <main className="max-w-md mx-auto min-h-screen relative">
           {children}
         </main>

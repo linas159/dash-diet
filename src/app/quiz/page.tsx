@@ -8,7 +8,15 @@ import ProgressBar from "@/components/ProgressBar";
 import QuestionRenderer from "@/components/QuestionRenderer";
 import LoadingAnalysis from "@/components/LoadingAnalysis";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import {
+  trackQuizStart,
+  trackQuestionAnswered,
+  trackSectionCompleted,
+  trackEmailModalShown,
+  trackLead,
+  trackQuizCompleted,
+} from "@/lib/fbpixel";
 
 export default function QuizPage() {
   const router = useRouter();
@@ -25,6 +33,19 @@ export default function QuizPage() {
 
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [email, setEmailInput] = useState("");
+
+  // Track quiz start on mount
+  const quizStartTracked = useRef(false);
+  useEffect(() => {
+    if (!quizStartTracked.current) {
+      quizStartTracked.current = true;
+      trackQuizStart();
+    }
+  }, []);
+
+  // Track section transitions: fire SectionCompleted when section changes
+  const lastSectionRef = useRef<string | null>(null);
+  const sectionIndexRef = useRef(0);
 
   const currentQuestion = quizQuestions[currentStep];
   const isLastQuestion = currentStep >= quizQuestions.length - 1;
@@ -45,8 +66,36 @@ export default function QuizPage() {
   const handleNext = (autoAdvance = false) => {
     if (!autoAdvance && !canProceed()) return;
 
+    // Track the answered question
+    if (currentQuestion) {
+      trackQuestionAnswered({
+        questionId: currentQuestion.id,
+        questionIndex: currentStep,
+        section: currentQuestion.section,
+        totalQuestions: totalQuestions,
+      });
+
+      // Track section completion when moving to a new section
+      const nextQ = quizQuestions[currentStep + 1];
+      if (nextQ && currentQuestion.section !== nextQ.section) {
+        trackSectionCompleted({
+          section: currentQuestion.section,
+          sectionIndex: sectionIndexRef.current,
+        });
+        sectionIndexRef.current++;
+      }
+      // Also track final section when it's the last question
+      if (isLastQuestion) {
+        trackSectionCompleted({
+          section: currentQuestion.section,
+          sectionIndex: sectionIndexRef.current,
+        });
+      }
+    }
+
     if (isLastQuestion) {
       setShowEmailCapture(true);
+      trackEmailModalShown();
     } else {
       nextStep();
     }
@@ -56,6 +105,10 @@ export default function QuizPage() {
     setShowEmailCapture(false);
     setIsGenerating(true);
     if (email) setEmail(email);
+
+    // Track Lead (standard) and QuizCompleted (custom)
+    trackLead(email);
+    trackQuizCompleted({ totalQuestions, email });
 
     try {
       const response = await fetch("/api/generate-plan", {

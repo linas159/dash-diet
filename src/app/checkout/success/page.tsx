@@ -6,10 +6,18 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useQuizStore } from "@/lib/store";
+import { trackPurchase, trackPlanAccessed } from "@/lib/fbpixel";
+
+const planPrices: Record<string, number> = {
+  "7day": 2.95,
+  monthly: 9.99,
+  quarterly: 19.99,
+};
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const { answers } = useQuizStore();
+  const { answers, selectedPlan: storedPlan } = useQuizStore();
+  const purchaseTracked = useRef(false);
 
   // Direct flow (card/Google Pay/Apple Pay): subscription already created
   const directSubscriptionId = searchParams.get("subscription_id");
@@ -32,6 +40,16 @@ function SuccessContent() {
     // If we already have a subscription ID (direct flow), we're done
     if (directSubscriptionId) {
       setStatus("success");
+      // Track purchase for direct flow
+      if (!purchaseTracked.current) {
+        purchaseTracked.current = true;
+        const planId = storedPlan || "monthly";
+        trackPurchase({
+          planId,
+          value: planPrices[planId] || 0,
+          subscriptionId: directSubscriptionId,
+        });
+      }
       return;
     }
 
@@ -60,6 +78,15 @@ function SuccessContent() {
           } else {
             setSubscriptionId(data.subscriptionId);
             setStatus("success");
+            // Track purchase for redirect flow
+            if (!purchaseTracked.current) {
+              purchaseTracked.current = true;
+              trackPurchase({
+                planId: planIdParam!,
+                value: planPrices[planIdParam!] || 0,
+                subscriptionId: data.subscriptionId,
+              });
+            }
           }
         })
         .catch(() => {
@@ -70,7 +97,7 @@ function SuccessContent() {
       // No params at all — show success anyway (edge case)
       setStatus("success");
     }
-  }, [directSubscriptionId, paymentIntentParam, planIdParam, customerIdParam, answers]);
+  }, [directSubscriptionId, paymentIntentParam, planIdParam, customerIdParam, answers, storedPlan]);
 
   if (status === "loading") {
     return (
@@ -155,6 +182,9 @@ function SuccessContent() {
           <Link
             href={subscriptionId ? `/plan?subscription_id=${subscriptionId}` : "/"}
             className="block"
+            onClick={() => {
+              if (subscriptionId) trackPlanAccessed(subscriptionId);
+            }}
           >
             <button className="btn-primary">
               {subscriptionId ? "Access My Plan" : "Back to Home"}

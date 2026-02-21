@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { trackPageView } from "@/lib/fbpixel";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
@@ -15,6 +16,8 @@ export default function CookieBanner() {
   const handleAccept = () => {
     localStorage.setItem("cookie-consent", "accepted");
     setVisible(false);
+    // Fire the initial PageView now that consent is granted
+    trackPageView();
   };
 
   const handleDecline = () => {
