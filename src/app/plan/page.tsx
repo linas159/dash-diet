@@ -18,6 +18,10 @@ interface Meal {
   name: string;
   calories: number;
   description: string;
+  ingredients?: string[];
+  macros?: { protein: number; carbs: number; fats: number; sodium: number };
+  prepTime?: string;
+  recipe?: string;
 }
 
 interface MealDay {
@@ -326,7 +330,7 @@ function PlanContent() {
             >
               <div className="relative h-40 w-full">
                 <Image
-                  src={getMealImage(meal.type, activeDay)}
+                  src={getMealImage(meal.type, activeDay, meal.name)}
                   alt={meal.name}
                   fill
                   className="object-cover"
@@ -846,7 +850,7 @@ function PlanContent() {
               {/* Header with Image */}
               <div className="relative h-48 w-full flex-shrink-0">
                 <Image
-                  src={getMealImage(selectedMeal.type, activeDay)}
+                  src={getMealImage(selectedMeal.type, activeDay, selectedMeal.name)}
                   alt={selectedMeal.name}
                   fill
                   className="object-cover"
@@ -872,7 +876,12 @@ function PlanContent() {
                     {selectedMeal.type}
                   </span>
                   <h2 className="text-xl font-bold text-white">{selectedMeal.name}</h2>
-                  <p className="text-sm text-white/80 mt-1">{selectedMeal.calories} calories</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <p className="text-sm text-white/80">{selectedMeal.calories} kcal</p>
+                    {selectedMeal.prepTime && (
+                      <p className="text-sm text-white/80">⏱ {selectedMeal.prepTime}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -888,6 +897,23 @@ function PlanContent() {
                       {selectedMeal.description}
                     </p>
                   </div>
+
+                  {/* Macros */}
+                  {selectedMeal.macros && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { label: "Protein", value: selectedMeal.macros.protein, unit: "g", color: "bg-blue-50 text-dash-blue" },
+                        { label: "Carbs", value: selectedMeal.macros.carbs, unit: "g", color: "bg-orange-50 text-orange-600" },
+                        { label: "Fats", value: selectedMeal.macros.fats, unit: "g", color: "bg-yellow-50 text-yellow-600" },
+                        { label: "Sodium", value: selectedMeal.macros.sodium, unit: "mg", color: "bg-red-50 text-red-500" },
+                      ].map((m) => (
+                        <div key={m.label} className={`rounded-xl p-2 text-center ${m.color}`}>
+                          <p className="text-xs font-bold">{m.value}{m.unit}</p>
+                          <p className="text-xs opacity-70">{m.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Recipe/Instructions */}
                   <div>
@@ -940,178 +966,66 @@ function PlanContent() {
   );
 }
 
-// Helper functions to generate recipe content based on meal
+// Helper functions — always use the actual AI-generated data from the meal object.
+// Keyword-based fallbacks only fire when the plan genuinely lacks the field.
 function getRecipeIngredients(meal: Meal): string[] {
-  const type = meal.type.toLowerCase();
-  const name = meal.name.toLowerCase();
+  if (meal.ingredients && meal.ingredients.length > 0) {
+    return meal.ingredients;
+  }
 
-  // Generic ingredients based on meal type and common patterns
+  // Fallback: derive a sensible list from the meal name
+  const name = meal.name.toLowerCase();
   if (name.includes("oatmeal") || name.includes("oat")) {
-    return [
-      "½ cup rolled oats",
-      "1 cup low-fat milk or almond milk",
-      "½ cup mixed berries",
-      "1 tbsp chopped walnuts",
-      "1 tsp honey (optional)",
-      "Pinch of cinnamon"
-    ];
+    return ["½ cup rolled oats", "1 cup low-fat milk", "½ cup mixed berries", "1 tbsp walnuts", "1 tsp honey", "Pinch of cinnamon"];
   }
   if (name.includes("smoothie")) {
-    return [
-      "1 cup spinach or kale",
-      "1 banana",
-      "½ cup mixed berries",
-      "1 cup low-fat yogurt",
-      "1 tbsp chia seeds",
-      "½ cup water or almond milk"
-    ];
+    return ["1 cup spinach", "1 banana", "½ cup mixed berries", "1 cup low-fat yogurt", "1 tbsp chia seeds", "½ cup almond milk"];
   }
   if (name.includes("salad")) {
-    return [
-      "2 cups mixed greens (spinach, arugula, lettuce)",
-      "½ cup cherry tomatoes, halved",
-      "½ cucumber, sliced",
-      "¼ red onion, thinly sliced",
-      "3 oz grilled chicken breast or chickpeas",
-      "2 tbsp olive oil and lemon dressing",
-      "¼ avocado, sliced"
-    ];
+    return ["2 cups mixed greens", "½ cup cherry tomatoes", "½ cucumber sliced", "3 oz grilled chicken or chickpeas", "2 tbsp olive oil & lemon dressing"];
   }
-  if (name.includes("salmon") || name.includes("fish")) {
-    return [
-      "4 oz salmon fillet",
-      "1 cup broccoli florets",
-      "½ cup quinoa or brown rice",
-      "1 lemon, juiced",
-      "1 clove garlic, minced",
-      "1 tbsp olive oil",
-      "Fresh herbs (dill or parsley)"
-    ];
+  if (name.includes("salmon") || name.includes("fish") || name.includes("cod")) {
+    return ["4 oz fish fillet", "1 cup broccoli", "½ cup quinoa", "1 lemon juiced", "1 clove garlic", "1 tbsp olive oil"];
   }
   if (name.includes("chicken")) {
-    return [
-      "4 oz boneless chicken breast",
-      "1 cup mixed vegetables (bell peppers, zucchini, carrots)",
-      "½ cup brown rice or quinoa",
-      "2 cloves garlic, minced",
-      "1 tbsp olive oil",
-      "Low-sodium spices (paprika, oregano, black pepper)"
-    ];
+    return ["4 oz chicken breast", "1 cup mixed vegetables", "½ cup brown rice", "2 cloves garlic", "1 tbsp olive oil", "Low-sodium spices"];
   }
   if (name.includes("soup")) {
-    return [
-      "2 cups low-sodium vegetable broth",
-      "1 cup mixed vegetables (carrots, celery, onion)",
-      "½ cup white beans or lentils",
-      "2 cloves garlic, minced",
-      "1 bay leaf",
-      "Fresh herbs (thyme, parsley)",
-      "1 slice whole grain bread (optional)"
-    ];
+    return ["2 cups low-sodium broth", "1 cup mixed vegetables", "½ cup lentils or beans", "2 cloves garlic", "Fresh herbs"];
   }
-  if (type.includes("snack")) {
-    return [
-      "1 medium apple, sliced",
-      "2 tbsp natural almond or peanut butter",
-      "Optional: sprinkle of cinnamon"
-    ];
-  }
-
-  // Default ingredients for any meal
-  return [
-    "Fresh vegetables (as specified in meal plan)",
-    "Lean protein source (chicken, fish, or legumes)",
-    "Whole grains (brown rice, quinoa, or whole wheat)",
-    "Healthy fats (olive oil, avocado, or nuts)",
-    "Low-sodium seasonings and herbs",
-    "Fresh lemon or lime juice"
-  ];
+  return ["Fresh vegetables", "Lean protein (chicken, fish, or legumes)", "Whole grains", "Healthy fats (olive oil or nuts)", "Low-sodium herbs and spices"];
 }
 
 function getRecipeInstructions(meal: Meal): string[] {
-  const name = meal.name.toLowerCase();
-  const type = meal.type.toLowerCase();
+  if (meal.recipe && meal.recipe.trim()) {
+    // Split the 2-sentence recipe into individual steps
+    return meal.recipe
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
 
+  // Fallback: derive steps from the meal name
+  const name = meal.name.toLowerCase();
   if (name.includes("oatmeal") || name.includes("oat")) {
-    return [
-      "Bring milk to a gentle simmer in a small saucepan",
-      "Add oats and reduce heat to low, stirring occasionally",
-      "Cook for 5-7 minutes until oats are tender and creamy",
-      "Remove from heat and stir in berries and walnuts",
-      "Top with cinnamon and honey if desired",
-      "Serve warm and enjoy!"
-    ];
+    return ["Bring milk to a simmer, add oats and cook 5–7 min until creamy.", "Top with berries, walnuts, and a drizzle of honey. Serve warm."];
   }
   if (name.includes("smoothie")) {
-    return [
-      "Add all ingredients to a high-speed blender",
-      "Blend on high for 30-60 seconds until smooth",
-      "Add more liquid if needed for desired consistency",
-      "Pour into a glass and enjoy immediately",
-      "Optional: top with extra berries or chia seeds"
-    ];
+    return ["Blend all ingredients on high for 45 seconds until smooth.", "Pour into a glass and serve immediately."];
   }
   if (name.includes("salad")) {
-    return [
-      "Wash and dry all greens thoroughly",
-      "Arrange greens in a large bowl or plate",
-      "Add cherry tomatoes, cucumber, and onion",
-      "Top with grilled chicken or chickpeas",
-      "Drizzle with olive oil and lemon dressing",
-      "Add avocado slices and toss gently before serving"
-    ];
+    return ["Arrange greens, tomatoes, cucumber, and protein in a bowl.", "Drizzle with olive oil and lemon dressing, toss and serve."];
   }
-  if (name.includes("salmon") || name.includes("fish")) {
-    return [
-      "Preheat oven to 400°F (200°C)",
-      "Season salmon with lemon juice, garlic, and herbs",
-      "Drizzle with olive oil and place on a baking sheet",
-      "Bake for 12-15 minutes until fish flakes easily",
-      "Meanwhile, steam broccoli for 5-7 minutes",
-      "Cook quinoa according to package directions",
-      "Plate everything together and serve with extra lemon"
-    ];
+  if (name.includes("salmon") || name.includes("fish") || name.includes("cod")) {
+    return ["Season fish with lemon, garlic, and herbs; bake at 400°F for 12–15 min.", "Serve with steamed broccoli and cooked quinoa."];
   }
   if (name.includes("chicken")) {
-    return [
-      "Season chicken breast with garlic and spices",
-      "Heat olive oil in a large skillet over medium heat",
-      "Cook chicken for 6-7 minutes per side until golden",
-      "Remove chicken and set aside",
-      "In the same pan, sauté vegetables for 5-7 minutes",
-      "Slice chicken and serve over brown rice with vegetables"
-    ];
+    return ["Season and cook chicken in olive oil over medium heat, 6–7 min per side.", "Sauté vegetables in the same pan, then serve over brown rice."];
   }
   if (name.includes("soup")) {
-    return [
-      "Heat olive oil in a large pot over medium heat",
-      "Sauté onions, carrots, and celery for 5 minutes",
-      "Add garlic and cook for 1 minute until fragrant",
-      "Pour in vegetable broth and bring to a boil",
-      "Add beans, bay leaf, and herbs",
-      "Reduce heat and simmer for 20-25 minutes",
-      "Season to taste and serve hot with whole grain bread"
-    ];
+    return ["Sauté vegetables and garlic, add broth and beans, simmer 20–25 min.", "Season with herbs and serve hot."];
   }
-  if (type.includes("snack")) {
-    return [
-      "Wash and slice the apple into wedges",
-      "Arrange apple slices on a plate",
-      "Serve with almond or peanut butter for dipping",
-      "Optional: sprinkle with cinnamon for extra flavor",
-      "Enjoy immediately for the best texture"
-    ];
-  }
-
-  // Default instructions
-  return [
-    "Prepare all ingredients by washing and chopping as needed",
-    "Follow DASH diet principles: use minimal salt, emphasize vegetables",
-    "Cook proteins and grains according to standard methods",
-    "Combine all components on your plate",
-    "Season with herbs, spices, and lemon juice instead of salt",
-    "Enjoy your healthy, blood pressure-friendly meal!"
-  ];
+  return ["Prepare all ingredients following DASH guidelines (minimal salt, plenty of vegetables).", "Combine and serve, seasoning with herbs and lemon juice instead of salt."];
 }
 
 function getDashBenefits(mealType: string): string[] {

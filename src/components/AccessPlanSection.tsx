@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -9,6 +9,11 @@ export default function AccessPlanSection() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,41 +55,42 @@ export default function AccessPlanSection() {
         >
           <p className="text-sm text-gray-500 mb-3">Already have a plan?</p>
 
-          <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
-            <div className="flex gap-2" suppressHydrationWarning>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-                className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dash-blue/20 focus:border-dash-blue transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
-                suppressHydrationWarning
-              />
-              <button
-                type="submit"
-                disabled={loading || !email.trim()}
-                className="px-5 py-3 bg-dash-blue text-white font-semibold text-sm rounded-xl transition-all hover:bg-dash-blue/90 active:scale-[0.98] disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Access"
-                )}
-              </button>
-            </div>
+          {mounted && (
+            <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-dash-blue/20 focus:border-dash-blue transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !email.trim()}
+                  className="px-5 py-3 bg-dash-blue text-white font-semibold text-sm rounded-xl transition-all hover:bg-dash-blue/90 active:scale-[0.98] disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Access"
+                  )}
+                </button>
+              </div>
 
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-xs text-red-500 mt-2 text-left"
-              >
-                {error}
-              </motion.p>
-            )}
-          </form>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-red-500 mt-2 text-left"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </form>
+          )}
         </motion.div>
       </div>
     </section>

@@ -1,16 +1,79 @@
 // Image mapping helpers for the plan page
 // Keeps image selection logic out of the page component
 
-export function getMealImage(mealType: string, dayIndex: number): string {
-  const type = mealType.toLowerCase();
-  let category = "snack";
-  if (type.includes("breakfast") || type.includes("morning")) category = "breakfast";
-  else if (type.includes("lunch") || type.includes("noon")) category = "lunch";
-  else if (type.includes("dinner") || type.includes("evening") || type.includes("supper")) category = "dinner";
-  else if (type.includes("snack")) category = "snack";
+// Actual photo contents (for accurate keyword matching):
+// breakfast-1 = oatmeal with berries
+// breakfast-2 = avocado toast
+// breakfast-3 = smoothie / acai bowl
+// breakfast-4 = scrambled eggs with vegetables
+//
+// lunch-1 = rainbow salad bowl
+// lunch-2 = wrap / roll
+// lunch-3 = grain bowl (quinoa, chickpeas, farro)
+// lunch-4 = soup (tomato / broth-based)
+//
+// dinner-1 = salmon with roasted vegetables
+// dinner-2 = chicken with couscous / quinoa
+// dinner-3 = pasta / spaghetti
+// dinner-4 = stir-fry (mixed vegetables in wok)
+//
+// snack-1 = apple slices with peanut/almond butter
+// snack-2 = mixed nuts bowl
+// snack-3 = yogurt with berries and granola
+// snack-4 = veggies and hummus platter
 
-  const num = (dayIndex % 4) + 1;
-  return `/photos/meals/${category}-${num}.jpg`;
+export function getMealImage(mealType: string, dayIndex: number, mealName?: string): string {
+  const type = mealType.toLowerCase();
+  const name = (mealName || "").toLowerCase();
+
+  if (type.includes("breakfast") || type.includes("morning")) {
+    if (name.includes("oat") || name.includes("porridge") || name.includes("cereal") || name.includes("muesli"))
+      return "/photos/meals/breakfast-1.jpg";
+    if (name.includes("avocado") || name.includes("toast") || name.includes("bread") || name.includes("bagel") || name.includes("pancake") || name.includes("waffle"))
+      return "/photos/meals/breakfast-2.jpg";
+    if (name.includes("smoothie") || name.includes("acai") || name.includes("bowl") || name.includes("parfait") || name.includes("yogurt") || name.includes("berry") || name.includes("banana"))
+      return "/photos/meals/breakfast-3.jpg";
+    if (name.includes("egg") || name.includes("omelette") || name.includes("scramble") || name.includes("frittata") || name.includes("veggie"))
+      return "/photos/meals/breakfast-4.jpg";
+    // Fallback: cycle
+    return `/photos/meals/breakfast-${(dayIndex % 4) + 1}.jpg`;
+  }
+
+  if (type.includes("lunch") || type.includes("noon")) {
+    if (name.includes("salad") || name.includes("slaw") || name.includes("greens") || name.includes("tuna"))
+      return "/photos/meals/lunch-1.jpg";
+    if (name.includes("wrap") || name.includes("roll") || name.includes("tortilla") || name.includes("sandwich") || name.includes("burrito") || name.includes("pita"))
+      return "/photos/meals/lunch-2.jpg";
+    if (name.includes("bowl") || name.includes("quinoa") || name.includes("grain") || name.includes("poke") || name.includes("chickpea") || name.includes("lentil") || name.includes("bean") || name.includes("farro") || name.includes("rice"))
+      return "/photos/meals/lunch-3.jpg";
+    if (name.includes("soup") || name.includes("stew") || name.includes("chowder") || name.includes("bisque") || name.includes("broth"))
+      return "/photos/meals/lunch-4.jpg";
+    return `/photos/meals/lunch-${(dayIndex % 4) + 1}.jpg`;
+  }
+
+  if (type.includes("dinner") || type.includes("evening") || type.includes("supper")) {
+    if (name.includes("salmon") || name.includes("fish") || name.includes("cod") || name.includes("tilapia") || name.includes("tuna") || name.includes("shrimp") || name.includes("seafood") || name.includes("prawn"))
+      return "/photos/meals/dinner-1.jpg";
+    if (name.includes("chicken") || name.includes("turkey") || name.includes("breast") || name.includes("poultry"))
+      return "/photos/meals/dinner-2.jpg";
+    if (name.includes("pasta") || name.includes("spaghetti") || name.includes("noodle") || name.includes("linguine") || name.includes("penne") || name.includes("meatball"))
+      return "/photos/meals/dinner-3.jpg";
+    if (name.includes("stir") || name.includes("fry") || name.includes("curry") || name.includes("wok") || name.includes("tofu") || name.includes("stuffed") || name.includes("pepper") || name.includes("taco") || name.includes("fajita") || name.includes("vegetable"))
+      return "/photos/meals/dinner-4.jpg";
+    return `/photos/meals/dinner-${(dayIndex % 4) + 1}.jpg`;
+  }
+
+  // Snack
+  if (name.includes("apple") || name.includes("fruit") || name.includes("banana") || name.includes("pear") || name.includes("peach") || name.includes("orange") || name.includes("peanut butter") || name.includes("almond butter"))
+    return "/photos/meals/snack-1.jpg";
+  if (name.includes("nut") || name.includes("almond") || name.includes("walnut") || name.includes("cashew") || name.includes("trail") || name.includes("seed") || name.includes("mixed"))
+    return "/photos/meals/snack-2.jpg";
+  if (name.includes("yogurt") || name.includes("cottage") || name.includes("granola") || name.includes("parfait") || name.includes("berry") || name.includes("berr"))
+    return "/photos/meals/snack-3.jpg";
+  if (name.includes("veggie") || name.includes("vegetable") || name.includes("carrot") || name.includes("celery") || name.includes("hummus") || name.includes("egg") || name.includes("boiled") || name.includes("cucumber") || name.includes("rice cake"))
+    return "/photos/meals/snack-4.jpg";
+
+  return `/photos/meals/snack-${(dayIndex % 4) + 1}.jpg`;
 }
 
 export function getExerciseImage(exerciseName: string): string {

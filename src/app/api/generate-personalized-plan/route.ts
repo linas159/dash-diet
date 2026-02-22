@@ -39,8 +39,20 @@ export async function POST(request: NextRequest) {
     const foodsToAvoid = (quizAnswers.foods_to_avoid as string[]) || [];
     const healthConditions = (quizAnswers.health_conditions as string[]) || [];
     const cookingSkill = (quizAnswers.cooking_skill as string) || "intermediate";
-    const exerciseFrequency =
-      (quizAnswers.exercise_frequency as string) || "1_2_week";
+    const exerciseFrequency = (quizAnswers.exercise_frequency as string) || "1_2_week";
+
+    // Additional quiz answers
+    const mealsPerDay = (quizAnswers.meals_per_day as string) || "3";
+    const eatingHabits = (quizAnswers.eating_habits as string[]) || [];
+    const bodyType = (quizAnswers.body_type as string) || "average";
+    const targetBody = (quizAnswers.target_body as string) || "fit";
+    const saltIntake = (quizAnswers.salt_intake as string) || "moderate";
+    const sleepHours = (quizAnswers.sleep_hours as string) || "7_8";
+    const waterIntake = (quizAnswers.water_intake as string) || "4_6";
+    const stressLevel = (quizAnswers.stress_level as string) || "3";
+    const timeline = (quizAnswers.timeline as string) || "3months";
+    const motivation = (quizAnswers.motivation as string) || "energy";
+    const pastDiets = (quizAnswers.past_diets as string[]) || [];
 
     const bmi = calculateBMI(weight, height);
     const bmiCategory = getBMICategory(bmi);
@@ -71,53 +83,90 @@ export async function POST(request: NextRequest) {
       healthConditions,
       cookingSkill,
       exerciseFrequency,
+      mealsPerDay,
+      eatingHabits,
+      bodyType,
+      targetBody,
+      saltIntake,
+      sleepHours,
+      waterIntake,
+      stressLevel,
+      timeline,
+      motivation,
+      pastDiets,
     });
+
+    // Log the full prompt so you can inspect it in the terminal while it generates
+    console.log("\n" + "═".repeat(80));
+    console.log("📋 GEMINI PROMPT");
+    console.log("═".repeat(80));
+    console.log(prompt);
+    console.log("═".repeat(80) + "\n");
 
     let personalizedPlan = null;
 
     // Try Gemini API if key is available
     if (process.env.GEMINI_API_KEY) {
-      console.log("🤖 Using Gemini API to generate personalized plan...");
-      try {
-        const systemInstruction =
-          "You are a certified nutritionist and fitness expert specializing in the DASH diet. Generate comprehensive, personalized meal plans, exercise routines, shopping lists, and progress tracking templates. Respond in JSON format only with detailed, actionable content.";
+      // Use env override first, then try pinned stable models in order.
+      // Prefer pinned versions (e.g. gemini-2.0-flash-001) over unpinned aliases
+      // so deprecations don't silently break generation. Add newer models to the
+      // front of this list as they become available.
+      const modelsToTry = [
+        ...new Set([
+          process.env.GEMINI_MODEL,
+          "gemini-2.5-flash",
+          "gemini-2.0-flash-001",
+          "gemini-1.5-flash-001",
+        ].filter(Boolean) as string[]),
+      ];
 
-        const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY.trim()}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              system_instruction: {
-                parts: [{ text: systemInstruction }],
-              },
-              contents: [
-                {
-                  parts: [{ text: prompt }],
+      const systemInstruction =
+        "You are a certified nutritionist and fitness expert specializing in the DASH diet. Generate comprehensive, personalized meal plans, exercise routines, shopping lists, and progress tracking templates. Respond in JSON format only with detailed, actionable content.";
+
+      for (const model of modelsToTry) {
+        console.log(`🤖 Trying Gemini model: ${model}`);
+        try {
+          const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY.trim()}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                system_instruction: { parts: [{ text: systemInstruction }] },
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.3,
+                  maxOutputTokens: 32768,
+                  responseMimeType: "application/json",
                 },
-              ],
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 8000,
-                responseMimeType: "application/json",
-              },
-            }),
-          }
-        );
+              }),
+            }
+          );
 
-        if (geminiResponse.ok) {
-          const data = await geminiResponse.json();
-          const textContent = data.candidates[0].content.parts[0].text;
-          personalizedPlan = JSON.parse(textContent);
-          console.log("✅ Gemini API generated personalized plan successfully");
-        } else {
+          if (geminiResponse.ok) {
+            const data = await geminiResponse.json();
+            const textContent = data.candidates[0].content.parts[0].text;
+            personalizedPlan = JSON.parse(textContent);
+            console.log(`✅ Gemini model ${model} generated personalized plan successfully`);
+            break;
+          }
+
           const errorText = await geminiResponse.text();
-          console.error("❌ Gemini API failed:", geminiResponse.status, errorText);
+          console.error(`❌ Gemini model ${model} failed (${geminiResponse.status}):`, errorText);
+
+          // Only try the next model on 404 (deprecated/unavailable); other errors
+          // (401, 429, 5xx) won't be fixed by switching models.
+          if (geminiResponse.status !== 404) break;
+        } catch (err) {
+          console.error(`❌ Gemini model ${model} error:`, err);
+          // JSON parse errors mean the response was truncated (hit token limit).
+          // Try the next model rather than giving up entirely.
+          if (err instanceof SyntaxError) {
+            console.log(`⚠️ Truncated JSON from ${model}, trying next model...`);
+            continue;
+          }
+          break;
         }
-      } catch (err) {
-        console.error("❌ Gemini API error:", err);
       }
     } else {
       console.log("⚠️ No GEMINI_API_KEY found, using fallback plan generator");
@@ -216,48 +265,185 @@ interface PromptParams {
   healthConditions: string[];
   cookingSkill: string;
   exerciseFrequency: string;
+  mealsPerDay: string;
+  eatingHabits: string[];
+  bodyType: string;
+  targetBody: string;
+  saltIntake: string;
+  sleepHours: string;
+  waterIntake: string;
+  stressLevel: string;
+  timeline: string;
+  motivation: string;
+  pastDiets: string[];
 }
 
+// Human-readable label maps (keeps prompt tokens low while keeping AI context clear)
+const GOAL_LABELS: Record<string, string> = {
+  lose_weight: "lose weight", lower_bp: "lower blood pressure",
+  eat_healthier: "eat healthier", more_energy: "increase energy",
+  build_muscle: "build muscle", improve_health: "improve overall health",
+};
+const ACTIVITY_LABELS: Record<string, string> = {
+  sedentary: "sedentary (desk job)", light: "lightly active",
+  moderate: "moderately active", very_active: "very active",
+};
+const COOKING_LABELS: Record<string, string> = {
+  beginner: "beginner cook", intermediate: "intermediate cook",
+  advanced: "advanced cook", no_cook: "does not cook — needs no-cook or minimal-prep meals",
+};
+const TIMELINE_LABELS: Record<string, string> = {
+  "1month": "1 month", "3months": "3 months",
+  "6months": "6 months", longterm: "long-term lifestyle change",
+};
+const SALT_LABELS: Record<string, string> = {
+  high: "currently eats a high-sodium diet — strong sodium reduction needed",
+  moderate: "moderate sodium intake",
+  low: "already low sodium intake — maintain and reinforce",
+  unsure: "unsure about sodium intake",
+};
+const SLEEP_LABELS: Record<string, string> = {
+  less_5: "under 5 hours (sleep-deprived)", "5_6": "5–6 hours (below optimal)",
+  "7_8": "7–8 hours (healthy)", "9_plus": "9+ hours",
+};
+const WATER_LABELS: Record<string, string> = {
+  less_4: "under 4 glasses/day (dehydrated)", "4_6": "4–6 glasses/day",
+  "7_8": "7–8 glasses/day", "9_plus": "9+ glasses/day",
+};
+
 function buildComprehensivePrompt(params: PromptParams): string {
-  return `Create a comprehensive personalized 7-day DASH diet plan for this person:
+  const cal = params.dailyCalories;
 
-Profile:
-- Gender: ${params.gender}, Age: ${params.age}
-- Height: ${params.height}cm, Weight: ${params.weight}kg, Target: ${params.targetWeight}kg
-- BMI: ${params.bmi} (${params.bmiCategory})
+  // ── Meal structure based on meals_per_day ──────────────────────────────────
+  type MealSlot = { type: string; cal: number; proteinG: number; carbsG: number; fatsG: number; sodiumMg: number };
+  let mealSlots: MealSlot[];
+  let mealCountNote: string;
+
+  if (params.mealsPerDay === "1_2") {
+    // 2 large meals, no snack
+    mealSlots = [
+      { type: "Brunch", cal: Math.round(cal * 0.55), proteinG: 35, carbsG: 55, fatsG: 22, sodiumMg: 500 },
+      { type: "Dinner", cal: Math.round(cal * 0.45), proteinG: 40, carbsG: 50, fatsG: 20, sodiumMg: 450 },
+    ];
+    mealCountNote = "2 meals per day (Brunch + Dinner). Large, satisfying portions. No breakfast or separate snack.";
+  } else if (params.mealsPerDay === "3" || params.eatingHabits.includes("skip_breakfast")) {
+    // 3 meals, no snack
+    mealSlots = [
+      { type: "Breakfast", cal: Math.round(cal * 0.25), proteinG: 20, carbsG: 40, fatsG: 12, sodiumMg: 280 },
+      { type: "Lunch",     cal: Math.round(cal * 0.40), proteinG: 32, carbsG: 52, fatsG: 16, sodiumMg: 420 },
+      { type: "Dinner",    cal: Math.round(cal * 0.35), proteinG: 38, carbsG: 48, fatsG: 18, sodiumMg: 380 },
+    ];
+    mealCountNote = params.eatingHabits.includes("skip_breakfast")
+      ? "3 meals per day — user often skips breakfast so keep it very quick (under 5 min)."
+      : "3 meals per day (Breakfast, Lunch, Dinner). No snack.";
+  } else if (params.mealsPerDay === "grazing") {
+    // 5 small meals
+    mealSlots = [
+      { type: "Breakfast",    cal: Math.round(cal * 0.20), proteinG: 15, carbsG: 35, fatsG: 10, sodiumMg: 200 },
+      { type: "Mid-Morning",  cal: Math.round(cal * 0.15), proteinG: 10, carbsG: 20, fatsG:  8, sodiumMg: 120 },
+      { type: "Lunch",        cal: Math.round(cal * 0.25), proteinG: 28, carbsG: 40, fatsG: 12, sodiumMg: 350 },
+      { type: "Afternoon",    cal: Math.round(cal * 0.15), proteinG: 10, carbsG: 18, fatsG:  8, sodiumMg: 120 },
+      { type: "Dinner",       cal: Math.round(cal * 0.25), proteinG: 30, carbsG: 38, fatsG: 14, sodiumMg: 320 },
+    ];
+    mealCountNote = "5 small meals/snacks throughout the day (grazing style). Keep each meal light.";
+  } else {
+    // Default: 4 meals (4_5 or unset)
+    mealSlots = [
+      { type: "Breakfast", cal: Math.round(cal * 0.25), proteinG: 20, carbsG: 45, fatsG: 12, sodiumMg: 280 },
+      { type: "Lunch",     cal: Math.round(cal * 0.35), proteinG: 30, carbsG: 50, fatsG: 15, sodiumMg: 400 },
+      { type: "Dinner",    cal: Math.round(cal * 0.30), proteinG: 35, carbsG: 45, fatsG: 18, sodiumMg: 350 },
+      { type: "Snack",     cal: Math.round(cal * 0.10), proteinG:  5, carbsG: 18, fatsG:  8, sodiumMg:  80 },
+    ];
+    mealCountNote = "4 meals per day (Breakfast, Lunch, Dinner, Snack).";
+  }
+
+  // ── Derive personalization rules ──────────────────────────────────────────
+  const rules: string[] = [];
+
+  // Meal count
+  rules.push(`Meal structure: ${mealCountNote}`);
+
+  // Goal-specific macros
+  if (params.goal === "build_muscle") rules.push("High protein priority (1.8–2.2g per kg body weight). Include protein in every meal.");
+  if (params.goal === "lose_weight") rules.push("Moderate calorie deficit already applied. Prioritize high-volume, low-calorie-density foods.");
+  if (params.goal === "lower_bp" || params.healthConditions.includes("high_bp")) rules.push("Strict sodium limit: under 1500mg/day. Emphasise potassium-rich foods (bananas, sweet potato, spinach).");
+  if (params.healthConditions.includes("diabetes")) rules.push("Low glycaemic index meals. Minimise simple sugars and refined carbs. Pair carbs with protein/fat.");
+  if (params.healthConditions.includes("high_cholesterol")) rules.push("Avoid saturated fat. Use olive oil, oily fish, oats, and soluble fibre sources.");
+  if (params.healthConditions.includes("kidney")) rules.push("Limit high-potassium and high-phosphorus foods (bananas, avocado, dairy in excess). Smaller protein portions.");
+  if (params.healthConditions.includes("digestive")) rules.push("Avoid raw cruciferous vegetables and high-FODMAP foods. Prefer cooked vegetables and easy-to-digest grains.");
+
+  // Salt intake
+  if (params.saltIntake !== "none") rules.push(`Salt habit: ${SALT_LABELS[params.saltIntake] || params.saltIntake}.`);
+
+  // Cooking skill
+  rules.push(`Cooking skill: ${COOKING_LABELS[params.cookingSkill] || params.cookingSkill}. ${params.cookingSkill === "beginner" || params.cookingSkill === "no_cook" ? "Use simple recipes, max 15 min prep." : ""}`);
+
+  // Eating habits
+  if (params.eatingHabits.includes("late_snacking")) rules.push("User snacks late at night — include a light evening snack option and avoid heavy dinners.");
+  if (params.eatingHabits.includes("big_portions")) rules.push("User tends to overeat — use high-fibre, high-volume meals to promote satiety.");
+  if (params.eatingHabits.includes("emotional_eating")) rules.push("User eats when stressed — include magnesium-rich and serotonin-supporting foods (dark chocolate, nuts, salmon).");
+  if (params.eatingHabits.includes("fast_food")) rules.push("User frequently eats fast food — include quick-prep alternatives that satisfy similar cravings.");
+  if (params.eatingHabits.includes("sugary_drinks")) rules.push("User drinks sugary beverages — meal plan should include naturally sweet foods to reduce cravings.");
+
+  // Body composition
+  if (params.targetBody === "muscular" || params.goal === "build_muscle") rules.push("Target: muscular build — increase protein, include post-workout meal options.");
+  if (params.targetBody === "lean" || params.targetBody === "slim") rules.push("Target: lean/slim — keep fat intake moderate, prioritise lean proteins and vegetables.");
+
+  // Sleep
+  if (params.sleepHours === "less_5" || params.sleepHours === "5_6") rules.push("Poor sleep — include magnesium-rich evening foods (pumpkin seeds, almonds, leafy greens) to aid sleep.");
+
+  // Water
+  if (params.waterIntake === "less_4") rules.push("Low water intake — add water-rich foods (cucumber, watermelon, celery). Mention hydration in recipe steps.");
+
+  // Stress
+  const stress = parseInt(params.stressLevel, 10);
+  if (stress >= 4) rules.push("High stress — incorporate anti-stress nutrients: omega-3s, vitamin C (citrus, berries), magnesium, B vitamins.");
+
+  // Timeline
+  const timelineLabel = TIMELINE_LABELS[params.timeline] || params.timeline;
+  rules.push(`Goal timeline: ${timelineLabel}.`);
+
+  // Avoided foods / allergies (explicit exclusions)
+  const excluded = [...params.allergies, ...params.foodsToAvoid].filter((a) => a !== "none");
+  if (excluded.length) rules.push(`STRICTLY exclude from all meals: ${excluded.join(", ")}.`);
+
+  // Food preferences
+  const preferred = params.foodPreferences.filter((p) => p !== "none");
+  if (preferred.length) rules.push(`Preferred foods to incorporate: ${preferred.join(", ")}.`);
+
+  // ── Build inline meal schema template ────────────────────────────────────
+  const mealSchemaLines = mealSlots.map((s, i) => {
+    const line = `{ "type": "${s.type}", "name": "...", "calories": ${s.cal}, "description": "One sentence.", "ingredients": ["item1","item2","item3","item4"], "macros": { "protein": ${s.proteinG}, "carbs": ${s.carbsG}, "fats": ${s.fatsG}, "sodium": ${s.sodiumMg} }, "prepTime": "...", "recipe": "Preparation sentence. Serving sentence." }`;
+    return i === 0 ? line : `        ${line}`;
+  }).join(",\n        ");
+
+  return `You are a certified DASH diet nutritionist. Generate a personalized 7-day DASH diet plan as a single valid JSON object.
+
+USER PROFILE:
+- ${params.gender}, age ${params.age}, ${params.height}cm, ${params.weight}kg → target ${params.targetWeight}kg
+- BMI ${params.bmi} (${params.bmiCategory}), primary goal: ${GOAL_LABELS[params.goal] || params.goal}
+- Activity: ${ACTIVITY_LABELS[params.activityLevel] || params.activityLevel}, exercise: ${params.exerciseFrequency.replace(/_/g, " ")}/week
 - Daily calorie target: ${params.dailyCalories} kcal
-- Activity level: ${params.activityLevel}
-- Primary goal: ${params.goal}
-- Cooking skill: ${params.cookingSkill}
-- Exercise frequency: ${params.exerciseFrequency}
-- Allergies: ${params.allergies.filter((a) => a !== "none").join(", ") || "None"}
-- Preferred foods: ${params.foodPreferences.join(", ") || "No preference"}
-- Foods to avoid: ${params.foodsToAvoid.filter((a) => a !== "none").join(", ") || "None"}
-- Health conditions: ${params.healthConditions.filter((a) => a !== "none").join(", ") || "None"}
 
-DASH Diet Requirements:
-- Low sodium (1500-2300mg/day)
-- Rich in fruits, vegetables, whole grains
-- Lean proteins, low-fat dairy
-- Nuts, seeds, and legumes
-- Limited saturated fat, red meat, sweets
+PERSONALIZATION RULES (apply strictly to every meal and exercise choice):
+${rules.map((r, i) => `${i + 1}. ${r}`).join("\n")}
 
-Return JSON with this structure:
+DASH DIET RULES: sodium <2000mg/day overall, rich in fruits/vegetables/whole grains/lean proteins/low-fat dairy/nuts.
+
+STRICT OUTPUT RULES:
+1. Return ONLY the JSON object — no markdown, no code fences, no explanations before or after.
+2. Every string value must be under 120 characters.
+3. Each meal has exactly 4–6 ingredients (plain strings, no measurements in the array key — measurements go inside the string).
+4. "recipe" is exactly 2 sentences: one preparation sentence, one serving sentence.
+5. The JSON must be 100% complete and syntactically valid — do not truncate.
+
+Return this exact JSON structure populated for all 7 days:
 {
   "mealPlan": [
     {
       "day": "Monday",
       "meals": [
-        {
-          "type": "Breakfast",
-          "name": "...",
-          "calories": 400,
-          "description": "...",
-          "ingredients": ["ingredient1", "ingredient2"],
-          "macros": { "protein": 20, "carbs": 45, "fats": 15, "sodium": 300 },
-          "prepTime": "15 min",
-          "recipe": "Step by step instructions..."
-        }
+        ${mealSchemaLines}
       ]
     }
   ],
@@ -265,51 +451,50 @@ Return JSON with this structure:
     {
       "day": "Monday",
       "exercises": [
-        {
-          "name": "...",
-          "duration": "30 min",
-          "intensity": "moderate",
-          "instructions": "How to perform...",
-          "caloriesBurned": 200
-        }
+        { "name": "Brisk Walk", "duration": "30 min", "intensity": "moderate", "instructions": "Walk at a steady pace maintaining rhythmic breathing.", "caloriesBurned": 150 }
       ]
     }
   ],
   "weeklyShoppingList": {
-    "produce": [{"item": "Spinach", "quantity": "2 bunches"}],
-    "proteins": [{"item": "Chicken breast", "quantity": "1.5 lbs"}],
-    "grains": [{"item": "Brown rice", "quantity": "2 cups"}],
-    "dairy": [{"item": "Low-fat Greek yogurt", "quantity": "1 container"}],
-    "pantry": [{"item": "Olive oil", "quantity": "1 bottle"}],
-    "other": [{"item": "Almond butter", "quantity": "1 jar"}]
+    "produce": [{ "item": "Spinach", "quantity": "1 bag" }],
+    "proteins": [{ "item": "Chicken breast", "quantity": "2 lbs" }],
+    "grains": [{ "item": "Brown rice", "quantity": "2 cups dry" }],
+    "dairy": [{ "item": "Low-fat Greek yogurt", "quantity": "32 oz" }],
+    "pantry": [{ "item": "Olive oil", "quantity": "1 bottle" }],
+    "other": [{ "item": "Mixed nuts", "quantity": "1 bag" }]
   },
   "foodCombinations": [
-    {
-      "name": "...",
-      "foods": ["food1", "food2"],
-      "benefit": "...",
-      "bestTime": "breakfast/lunch/dinner"
-    }
+    { "name": "Iron Boost", "foods": ["Spinach", "Lemon juice"], "benefit": "Vitamin C triples iron absorption from leafy greens.", "bestTime": "lunch" },
+    { "name": "Heart Protector", "foods": ["Salmon", "Olive oil"], "benefit": "Omega-3s and healthy fats maximise cardiovascular support.", "bestTime": "dinner" },
+    { "name": "BP Reducer", "foods": ["Banana", "Sweet potato"], "benefit": "High potassium foods naturally help lower blood pressure.", "bestTime": "any meal" },
+    { "name": "Energy Sustainer", "foods": ["Oats", "Berries"], "benefit": "Complex carbs with antioxidants provide lasting energy.", "bestTime": "breakfast" }
   ],
   "progressTracking": {
     "weeklyGoals": [
-      {"goal": "Drink 8 glasses of water daily", "tracked": false},
-      {"goal": "Exercise 3 times this week", "tracked": false}
+      { "goal": "Drink 8 glasses of water daily", "tracked": false },
+      { "goal": "Exercise at least 3 times this week", "tracked": false },
+      { "goal": "Limit sodium to under 2000mg daily", "tracked": false },
+      { "goal": "Eat 5+ servings of fruits/vegetables daily", "tracked": false }
     ],
-    "measurements": {
-      "weight": null,
-      "waist": null,
-      "bloodPressure": null,
-      "energy": null
-    },
+    "measurements": { "weight": null, "waist": null, "bloodPressure": null, "energy": null },
     "milestones": [
-      {"week": 1, "target": "Complete all meals", "achieved": false},
-      {"week": 2, "target": "Hit exercise goals", "achieved": false}
+      { "week": 1, "target": "Complete all planned meals", "achieved": false },
+      { "week": 2, "target": "Hit all exercise sessions", "achieved": false },
+      { "week": 4, "target": "Notice improved energy levels", "achieved": false },
+      { "week": 8, "target": "Measurable blood pressure improvement", "achieved": false }
     ]
   },
-  "tips": ["tip1", "tip2", "tip3"],
-  "summary": "A brief personalized summary of the plan"
-}`;
+  "tips": [
+    "Limit sodium to 1500–2000mg/day; use herbs and spices instead of salt.",
+    "Aim for 4–5 servings each of fruits and vegetables daily.",
+    "Choose whole grains over refined: oats, brown rice, whole wheat bread.",
+    "Drink 8 glasses of water daily to support metabolism and blood pressure.",
+    "Meal prep on Sundays to stay consistent throughout the week."
+  ],
+  "summary": "2–3 sentence personalised summary mentioning the user's goal, calorie target, meal structure, and realistic timeline."
+}
+
+Generate all 7 days (Monday–Sunday) in mealPlan and exercisePlan. Vary meals — no meal name repeated across the week. Apply all personalization rules above to every single day.`;
 }
 
 interface FallbackParams {
